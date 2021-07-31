@@ -59,10 +59,9 @@ RGID=`basename ${PREFIX}`
 
 
 IDX= ${GENOME%.*}
-if [ ! -f ${IDX}.1.bt2 ]
+if [ ! -f ${IDX}.1.bt2 ]; do
 		echo "building bowtie2 index of ${GENOME}"
 		bowtie2-build --threads ${THREADS} ${GENOME} ${IDX}
-fi
 
 ###align reads and convert to bam
 bowtie2 -t -p ${THREADS} -x ${IDX} -1 ${READ1} -2 ${READ2} --rg-id ${RGID} --rg LP:lb --rg PL:ILLUMINA --rg PU:barcode --rg SM:${RGID} | samtools view -bS > ${PREFIX}.bam
