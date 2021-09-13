@@ -56,13 +56,8 @@ done
 
 RGID=`basename ${PREFIX}`
 
-###align reads and convert to bam
-#bwa mem -t ${THREADS} -R "@RG\tID:${RGID}\tLP:lib\tPL:ILLUMINA\tPU:barcode\tSM:${RGID}" ${IDX} ${READ1} ${READ2} > ${PREFIX}.sam 
-#samtools view -@ ${THREADS} -bS ${PREFIX}.sam > ${PREFIX}.bam
-
-
 #check if genome has been indexed; in not, do it.
-if [ ! -f ${GENOME}.bwt ]
+if [ ! -f ${GENOME}.bwt ]; then
 		echo "creating bwa index of ${GENOME}"
 		bwa index ${GENOME}
 fi

@@ -39,5 +39,6 @@ fi
 _NAME="${ALIGNMENTS%%.*}"
 
 #then perform basecalling 
-bcftools mpileup -Ou -f ${GENOME} ${ALIGNMENTS} | bcftools call -mv -Ov -o ${_NAME}.vcf
-
+bcftools mpileup -Ou -f ${GENOME} ${ALIGNMENTS} | bcftools call -mv -Oz -o ${_NAME}.vcf.gz
+#after basecalling also create a vcf file containing only homozygous variants
+bcftools view -Oz -g hom ${_NAME}.vcf.gz > ${_NAME}.hom.vcf.gz

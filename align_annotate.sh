@@ -195,10 +195,12 @@ echo "######################################"
 
 if [ ${BASECALLER} = "samtools" ]
 then
+	echo "basecalling with samtools"
 	sh call_variants.sh ${_name}.srt.rmdup.bam ${GENOME} -t ${THREADS}
 elif [ ${BASECALLER} = "gatk" ]
 then
-	sh call_variants_gatk.sh ${_name}.srt.rmdup.bam ${GENOME}
+	echo "basecalling with gatk"
+	sh call_variants_gatk.sh -a ${_name}.srt.rmdup.bam -g ${GENOME} -t ${THREADS}
 fi
 
 echo
@@ -206,4 +208,5 @@ echo "######################################"
 echo "ANNOTATING VCF WITH SNPEFF"
 echo "######################################"
 
-sh snpeff_annotation.sh --vcf ${_name}.vcf --db ${DATABASE}
+sh snpeff_annotation.sh --vcf ${_name}.vcf.gz --db ${DATABASE}
+sh snpeff_annotation.sh --vcf ${_name}.hom.vcf.gz --db ${DATABASE}

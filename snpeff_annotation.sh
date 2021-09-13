@@ -15,9 +15,6 @@ HELP(){
 	echo "-h, --help	show this help"
 }
 
-#default parameter values
-THREADS=1
-
 #PARSE OPTIONS
 while [ $# -gt 0 ]; do
 	case "$1" in
@@ -38,10 +35,10 @@ while [ $# -gt 0 ]; do
 	esac
 done
 
-ANN_NAME=${VCF%%.vcf}.snpeff
+ANN_NAME=${VCF%%.vcf.gz}.snpeff
 
 ###perform snpeff annotation
-snpeff eff -noStats ${DATABASE} ${VCF} > ${ANN_NAME}.vcf
+snpeff eff -noStats -ud 0 ${DATABASE} ${VCF} > ${ANN_NAME}.vcf
 ###convert annotated VCF to a more human-readable format
 python snpeff2tsv.py --vcf ${ANN_NAME}.vcf > ${ANN_NAME}.tsv
 
