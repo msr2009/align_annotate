@@ -208,5 +208,4 @@ echo "######################################"
 echo "ANNOTATING VCF WITH SNPEFF"
 echo "######################################"
 
-sh snpeff_annotation.sh --vcf ${_name}.vcf.gz --db ${DATABASE}
-sh snpeff_annotation.sh --vcf ${_name}.hom.vcf.gz --db ${DATABASE}
+sh snpeff_annotation.sh --vcf ${_name}.soft-filter.vcf.gz --db ${DATABASE}

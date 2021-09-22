@@ -52,4 +52,8 @@ else
 fi
 
 #after basecalling also create a vcf file containing only homozygous variants
-bcftools view -Oz -g hom ${_NAME}.vcf.gz > ${_NAME}.hom.vcf.gz
+#bcftools view -Oz -g hom ${_NAME}.vcf.gz > ${_NAME}.hom.vcf.gz
+
+#after basecalling soft-filter variants for low quality (GQ>=20) and
+#heterozygous genotypes
+bcftools filter -s lowQual -i 'QG>=20' ${_NAME}.vcf.gz | bcftools filter -s Het -i 'GT="hom"' -o ${_NAME}.soft-filter.vcf.gz -Oz

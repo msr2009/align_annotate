@@ -41,4 +41,9 @@ _NAME="${ALIGNMENTS%%.*}"
 #then perform basecalling 
 bcftools mpileup -Ou -f ${GENOME} ${ALIGNMENTS} | bcftools call -mv -Oz -o ${_NAME}.vcf.gz
 #after basecalling also create a vcf file containing only homozygous variants
-bcftools view -Oz -g hom ${_NAME}.vcf.gz > ${_NAME}.hom.vcf.gz
+#bcftools view -Oz -g hom ${_NAME}.vcf.gz > ${_NAME}.hom.vcf.gz
+
+
+#soft-filter heterozygous site (GT="hom") and 
+#for low genotype quality ("GQ>=20")
+bcftools filter -s lowQual -i 'GQ>=20' ${_NAME} | bcftools filter -oZ -s Het -i 'GT=“hom"' -o ${_NAME}.soft-filter.vcf.gz -Oz
