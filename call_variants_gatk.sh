@@ -56,4 +56,4 @@ fi
 
 #after basecalling soft-filter variants for low quality (GQ>=20) and
 #heterozygous genotypes
-bcftools filter -s lowQual -i 'QG>=20' ${_NAME}.vcf.gz | bcftools filter -s Het -i 'GT="hom"' -o ${_NAME}.soft-filter.vcf.gz -Oz
+bcftools filter --threads ${THREADS} -s lowQual -i 'GQ>=20' ${_NAME}.vcf.gz | bcftools filter --threads ${THREADS} -s Het -i 'GT="hom"' -o ${_NAME}.soft-filter.vcf.gz -Oz

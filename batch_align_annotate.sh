@@ -147,6 +147,10 @@ fi
 
 for strain in `awk '{FS="\t";OFS=","}NR>1{print $18, $19}' "${INFOFILE}"`; do
 		
+		#initial values for each sample
+		STARTTIME=`date +%s`
+		READ1=0
+		READ2=0
 		FASTQ_PREFIX=$(echo $strain | cut -d "," -f 1)
 		SAMPLE_NAME=$(echo $strain | cut -d "," -f 2 | sed 's/#//g')
 		WORKING_DIR=${OUTPUT_DIR}/${SAMPLE_NAME}/
@@ -170,5 +174,14 @@ for strain in `awk '{FS="\t";OFS=","}NR>1{print $18, $19}' "${INFOFILE}"`; do
 		#after processing, move FASTQ files into output folder
 		mv ${READ1} ${WORKING_DIR}/
 		mv ${READ2} ${WORKING_DIR}/
-			
+
+		ENDTIME=`date +%s`
+		RUNTIME=$((ENDTIME-STARTTIME))
+		
+		echo ""
+		echo "########################################################"
+		echo "done with ${SAMPLE_NAME}."
+		echo "output files in ${WORKING_DIR}."
+		echo "total time: ${RUNTIME} seconds"
+		echo "########################################################"
 done

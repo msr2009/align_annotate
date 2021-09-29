@@ -64,7 +64,7 @@ if __name__ == "__main__":
 		list_of_files = []
 		for line in open(args.file_list, "r"):
 			list_of_files.append(line.strip())
-		print(len(list_of_files))
+#		print(len(list_of_files))
 		main(list_of_files, args.FILTER)
 	else:	
 		main(args.FILES, args.FILTER)	
