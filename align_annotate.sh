@@ -24,6 +24,8 @@ THREADS=1
 DATABASE="Caenorhabditis_elegans"
 ALIGNER="bwa"
 BASECALLER="gatk"
+SMOOVE=1
+SNPEFF_INPUT=""
 
 #display help
 HELP(){
@@ -45,6 +47,7 @@ HELP(){
 	echo "					(samtools, gatk; default=gatk)"
 	echo "-db	name of snpEff database for annotation (default=Caenorhabditis_elegans)"
 	echo "-t, --threads	number of threads to use for processes"
+	echo "--no-smoove	do not use smoove to call indels"
 	echo "-h, --help	show this help"
 }
 
@@ -92,6 +95,10 @@ while [ $# -gt 0 ]; do
 		--basecaller)
 			BASECALLER="$2"
 			shift 2
+			;;
+		--no_smoove)
+			SMOOVE=0
+			shift 1
 			;;
 		-h|--help) #HELP ME PLEASE!
 			HELP
@@ -203,9 +210,30 @@ then
 	sh call_variants_gatk.sh -a ${_name}.srt.rmdup.bam -g ${GENOME} -t ${THREADS}
 fi
 
+if [ ${SMOOVE} = 1 ]
+then
+	echo
+	echo "######################################"
+	echo "CALLING INDELS"
+	echo "######################################"
+
+	sh call_indels_smoove.sh -d ${WORKING_DIR}/smoove/ -n ${PREFIX} -g ${GENOME} -t ${THREADS}
+	
+	#concatenate snp and indel calls into same vcf file
+	bcftools concat -a -Oz -o ${_name}.all.soft-filter.vcf.gz ${_name}.snv.soft-filter.vcf.gz ${_name}.dup.vcf.gz ${_name}.del.vcf.gz
+	SNPEFF_INPUT=${_name}.all.soft-filter.vcf.gz
+else
+	echo
+	echo "######################################"
+	echo "SKIPPING INDEL CALLING STEP"
+	echo "######################################"
+	SNPEFF_INPUT=${_name}.soft-filter.vcf.gz
+
 echo
 echo "######################################"
 echo "ANNOTATING VCF WITH SNPEFF"
 echo "######################################"
 
-sh snpeff_annotation.sh --vcf ${_name}.soft-filter.vcf.gz --db ${DATABASE}
+sh snpeff_annotation.sh --vcf ${SNPEFF_INPUT} --db ${DATABASE}
+
+

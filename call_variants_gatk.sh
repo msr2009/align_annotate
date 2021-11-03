@@ -46,14 +46,12 @@ _NAME="${ALIGNMENTS%%.*}"
 echo "alignments: ${ALIGNMENTS}"
 echo "genome: ${GENOME}"
 if [ $THREADS -ne 1 ]; then
-	gatk HaplotypeCallerSpark -I ${ALIGNMENTS} -O ${_NAME}.vcf.gz -R ${GENOME} --spark-master local[${THREADS}]
+	gatk HaplotypeCallerSpark -I ${ALIGNMENTS} -O ${_NAME}.snp.vcf.gz -R ${GENOME} --spark-master local[${THREADS}]
 else 
-	gatk HaplotypeCaller -I ${ALIGNMENTS} -O ${_NAME}.vcf.gz -R ${GENOME}
+	gatk HaplotypeCaller -I ${ALIGNMENTS} -O ${_NAME}.snp.vcf.gz -R ${GENOME}
 fi
-
-#after basecalling also create a vcf file containing only homozygous variants
-#bcftools view -Oz -g hom ${_NAME}.vcf.gz > ${_NAME}.hom.vcf.gz
 
 #after basecalling soft-filter variants for low quality (GQ>=20) and
 #heterozygous genotypes
-bcftools filter --threads ${THREADS} -s lowQual -i 'GQ>=20' ${_NAME}.vcf.gz | bcftools filter --threads ${THREADS} -s Het -i 'GT="hom"' -o ${_NAME}.soft-filter.vcf.gz -Oz
+bcftools filter --threads ${THREADS} -s lowQual -i 'GQ>=20' ${_NAME}.snv.vcf.gz | bcftools filter --threads ${THREADS} -s Het -i 'GT="hom"' -o ${_NAME}.snv.soft-filter.vcf.gz -Oz
+bcftools index ${_NAME}.snv.soft-filter.vcf.gz

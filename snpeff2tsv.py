@@ -16,7 +16,7 @@ def main(vcf, append_info):
 		LOF_HEADERS=[]
 		NMD_HEADERS=[]
 		new_header = []
-		specific_headers = ["DP", "MQ", "AC", "AN"]
+		specific_headers = ["DP", "GQ"] ##these have to be in the FORMAT field for each line
 	
 		for line in open(vcf, "r").readlines():	
 			#grab snpeff headers from comments
@@ -28,7 +28,7 @@ def main(vcf, append_info):
 							LOF_HEADERS = [ "LOF_" + "".join(x.strip().split()) for x in line.strip().split("'")[1].split("|") ]
 					if comment_info == "NMD":
 							NMD_HEADERS = [ "NMD_" + "".join(x.strip().split()) for x in line.strip().split("'")[1].split("|") ]
-					
+
 			#grab the header line and add snpeff headers to it
 			elif line.startswith("#CHROM"):
 					new_header = line.strip().split("\t")[:7] + \
@@ -45,7 +45,6 @@ def main(vcf, append_info):
 			elif line[:2] == "##":
 					print(line.strip())
 
-
 			#after dealing with headers, we can reformat each mutation 
 			#and its annotations
 			else:
@@ -58,16 +57,21 @@ def main(vcf, append_info):
 					info = {}
 					_info = l[7].split(";")
 					if _info[0] == "INDEL":
-							info = {x.split("=")[0]:x.split("=")[1] for x in _info[1:]}
+#							info = {x.split("=")[0]:x.split("=")[1] for x in _info[1:]}
+							info = {info_parsing(x)[0]:info_parsing(x)[1] for x in _info[1:]}
 					else:
-							info = {x.split("=")[0]:x.split("=")[1] for x in _info}
+#							info = {x.split("=")[0]:x.split("=")[1] for x in _info}
+							info = {info_parsing(x)[0]:info_parsing(x)[1] for x in _info}
 			
 					#add DP, MQ, etc... to the line
 					#this line is now the same for all annotations of this
 					#variant, including the FORMAT, SAMPLE, (and INFO)
+					_format = l[8].split(":")
+					_sample = l[9].split(":")
+					_formatdict = dict(zip(_format, _sample))
 					for h in specific_headers:
-							new_variant_line.append(info[h])
-
+							new_variant_line.append(_formatdict[h])
+	
 					#how many annotations (~# of isoforms)
 					for x in info["ANN"].split(","):
 							ANNdat = x.split("|")
@@ -88,7 +92,14 @@ def main(vcf, append_info):
 							else:
 									print("\t".join(new_variant_line + ANNdat +
 											line_suffix))
-								
+
+def info_parsing(dat):
+	split_dat = dat.split("=")
+	if len(split_dat) == 2:
+			return (split_dat[0], split_dat[1])
+	else:
+			return (split_dat[0], "N/A")
+
 if __name__ == "__main__":
 	
 	from argparse import ArgumentParser
