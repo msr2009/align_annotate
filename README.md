@@ -1,11 +1,11 @@
-## align_annotate
+# align_annotate
 alignment and annotation pipeline for short read genome sequencing, with
 particular filtering and complementation strategies to enrich for homozygous
 mutations from forward genetic screens in C. elegans.
 
 Matt Rich, University of Utah 2021
 
-# pipeline description
+## pipeline description
 this is, as far as I know, a very standard alignment and annotation pipeline. it
 performs basic steps: read alignment to a reference genome, filtering for high
 quality alignments, and annotation of mutations (both for single nucleotide
@@ -44,7 +44,7 @@ but certainly could be at some point. The current implementation performs the
 analysis in serial (one sample at a time), but at least is a "set it and forget
 it" sort of thing*
 
-# auxiliary programs
+## auxiliary programs
 this pipeline was written with identifying causative mutations in forward
 genetic screens in *C. elegans*, and as such has a few analyses implemented that
 we think aid in this.
