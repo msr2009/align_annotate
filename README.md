@@ -70,15 +70,14 @@ strain. You can use bcftools' *isec* command to do this filtering.
 ```
 #first move all your vcf files into a new folder
 mkdir NEW_DIR
-cd NEW_DIR
-mv *.vcf.gz ISEC/ #or however you need to move your VCFs to ISEC/
-cd ISEC/
+mv *.vcf.gz NEW_DIR/ #or however you need to move your VCFs to ISEC/
+cd NEW_DIR/
 
 #isec output goes into a new directory
 #-n =1 tells script to output VCFs for mutations that appear in only one VCF
-bcftools isec -p OUTPUT_DIR/ -n =1 *.vcf.gz
+bcftools isec -p ISEC/ -n =1 *.vcf.gz
 
 #rename files based on isec output (0000.vcf, 0001.vcf, etc...)
-grep ^ISEC README.txt | bioawk -t '{system("scp ../"$1" "$3")}'
+grep ^ISEC README.txt | bioawk -t '{system("scp ../" $1" "$3)}'
 ```
 
