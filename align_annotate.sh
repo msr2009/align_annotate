@@ -5,18 +5,6 @@ set -o pipefail
 
 #requires bowtie2, samtools, blast, bioawk
 
-#a loop to get arguments
-#while getopts t:x:1:2:d: flag
-#do
-#    case "${flag}" in
-#        t) threads=${OPTARG};;
-#		x) _name=${OPTARG};;
-#		1) read1=${OPTARG};;
-#		2) read2=${OPTARG};;	
-#		d) WORKING_DIR=${OPTARG};;
-#	esac
-#done
-
 # Default values for blank parameters
 GENOME=
 PREFIX=
@@ -29,7 +17,7 @@ SNPEFF_INPUT=""
 
 #display help
 HELP(){
-	echo "genome_alignment.sh"
+	echo "align_annotate.sh"
 	echo "an alignment pipeline (Matt Rich 2021)"
 	echo
 	echo "syntax: -d WORKING_DIRECTORY -1 READ1 -2 READ2 -g GENOME_FASTA -x PREFIX"
@@ -96,7 +84,7 @@ while [ $# -gt 0 ]; do
 			BASECALLER="$2"
 			shift 2
 			;;
-		--no_smoove)
+		--no-smoove)
 			SMOOVE=0
 			shift 1
 			;;
@@ -153,7 +141,6 @@ fi
 ##############
 ###MAIN SCRIPT	
 ##############
-
 _name=${WORKING_DIR}/${PREFIX}
 
 echo
@@ -177,7 +164,7 @@ fi
 
 echo
 echo "######################################"
-echo "ALIGNING TO READS TO GENOME"
+echo "ALIGNING READS TO GENOME"
 echo "######################################"
 
 if [ ${ALIGNER} = "bwa" ]
@@ -210,6 +197,10 @@ then
 	sh call_variants_gatk.sh -a ${_name}.srt.rmdup.bam -g ${GENOME} -t ${THREADS}
 fi
 
+
+###HARD CODING THIS IN FOR NOW BECAUSE MY NO-SMOOVE OPTION ISN'T WORKING....
+#SMOOVE=0
+
 if [ ${SMOOVE} = 1 ]
 then
 	echo
@@ -227,7 +218,8 @@ else
 	echo "######################################"
 	echo "SKIPPING INDEL CALLING STEP"
 	echo "######################################"
-	SNPEFF_INPUT=${_name}.soft-filter.vcf.gz
+	SNPEFF_INPUT=${_name}.snp.soft-filter.vcf.gz
+fi
 
 echo
 echo "######################################"

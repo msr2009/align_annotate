@@ -12,6 +12,7 @@ FASTQ_DIR=
 OUTPUT_DIR=
 INFOFILE=
 OVERWRITE=0
+SMOOVE=1
 THREADS=1
 DATABASE="Caenorhabditis_elegans"
 ALIGNER="bwa"
@@ -39,6 +40,7 @@ HELP(){
 	echo "				(bwa, bowtie2; default=bwa)"
 	echo "--basecaller		basecalling software to use" 
 	echo "				(samtools, gatk; default=gatk)"
+	echo "--no-smoove	do not genotype indels with smoove"
 	echo "-db			name of snpEff database for annotation" 
 	echo "				(default=Caenorhabditis_elegans)"
 	echo "-t, --threads		number of threads to use for processes (default=1)"
@@ -89,6 +91,10 @@ while [ $# -gt 0 ]; do
 			;;
 		--overwrite)
 			OVERWRITE=1
+			shift 1
+			;;
+		--no-smoove)
+			SMOOVE=0
 			shift 1
 			;;
 		-h|--help) #HELP ME PLEASE!
@@ -145,6 +151,8 @@ fi
 #NOTE: this step relies on static positions for columns in
 #the mapping file from the HCI sequence core. 
 
+echo "smoove=${SMOOVE}"
+
 for strain in `awk '{FS="\t";OFS=","}NR>1{print $18, $19}' "${INFOFILE}"`; do
 		
 		#initial values for each sample
@@ -154,8 +162,9 @@ for strain in `awk '{FS="\t";OFS=","}NR>1{print $18, $19}' "${INFOFILE}"`; do
 		FASTQ_PREFIX=$(echo $strain | cut -d "," -f 1)
 		SAMPLE_NAME=$(echo $strain | cut -d "," -f 2 | sed 's/#//g')
 		WORKING_DIR=${OUTPUT_DIR}/${SAMPLE_NAME}/
-
-		if [ ${OVERWRITE} -eq 0 ] && [ -f ${WORKING_DIR}/${SAMPLE_NAME}.snpeff.tsv ]
+		
+		
+		if [ ${OVERWRITE} -eq 0 ] && [ -f ${WORKING_DIR}/*R1_001.fastq.gz ]
 		then
 			echo "########################################################"
 			echo "It looks like ${SAMPLE_NAME} has already been processed."
@@ -164,12 +173,31 @@ for strain in `awk '{FS="\t";OFS=","}NR>1{print $18, $19}' "${INFOFILE}"`; do
 			continue
 		fi
 
-		READ1=$(find ${FASTQ_DIR}/${FASTQ_PREFIX}_*R1_001.fastq.gz)
-		READ2=$(find ${FASTQ_DIR}/${FASTQ_PREFIX}_*R2_001.fastq.gz)
+		N_FASTQ=$(find ${FASTQ_DIR}/${FASTQ_PREFIX}_*R1_001.fastq.gz | wc -l)
+		if (( ${N_FASTQ} == 1 ))
+		then
+			READ1=$(find ${FASTQ_DIR}/${FASTQ_PREFIX}_*R1_001.fastq.gz)
+			READ2=$(find ${FASTQ_DIR}/${FASTQ_PREFIX}_*R2_001.fastq.gz)
+		else
+			echo "multiple FASTQs found for ${FASTQ_PREFIX}; concatenating them before alignment"
+			READ1=${FASTQ_DIR}/${FASTQ_PREFIX}_ALL_R1.fastq.gz
+			find ${FASTQ_DIR}/${FASTQ_PREFIX}_*R1_001.fastq.gz -exec cat {} + > ${FASTQ_DIR}/${FASTQ_PREFIX}_ALL_R1.fastq.gz
+			READ2=${FASTQ_DIR}/${FASTQ_PREFIX}_ALL_R2.fastq.gz
+			find ${FASTQ_DIR}/${FASTQ_PREFIX}_*R2_001.fastq.gz -exec cat {} + > ${FASTQ_DIR}/${FASTQ_PREFIX}_ALL_R2.fastq.gz
+		fi
 
-		sh align_annotate.sh -d ${WORKING_DIR} -x ${SAMPLE_NAME} -g ${GENOME} \
-								-1 ${READ1} -2 ${READ2} -t ${THREADS} \
-								--aligner ${ALIGNER} --basecaller ${BASECALLER}
+		if [ ${SMOOVE} -eq 0 ]
+		then
+			sh align_annotate.sh -d ${WORKING_DIR} -x ${SAMPLE_NAME} \
+									-g ${GENOME} -1 ${READ1} -2 ${READ2} \
+									-t ${THREADS} --aligner ${ALIGNER} \
+									--basecaller ${BASECALLER} --no-smoove
+		else
+			sh align_annotate.sh -d ${WORKING_DIR} -x ${SAMPLE_NAME} \
+									-g ${GENOME} -1 ${READ1} -2 ${READ2} \
+									-t ${THREADS} --aligner ${ALIGNER} \
+									--basecaller ${BASECALLER}
+		fi
 
 		#after processing, move FASTQ files into output folder
 		mv ${READ1} ${WORKING_DIR}/
@@ -184,4 +212,5 @@ for strain in `awk '{FS="\t";OFS=","}NR>1{print $18, $19}' "${INFOFILE}"`; do
 		echo "output files in ${WORKING_DIR}."
 		echo "total time: ${RUNTIME} seconds"
 		echo "########################################################"
+
 done

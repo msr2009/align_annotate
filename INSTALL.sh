@@ -44,10 +44,12 @@ else
 fi
 
 ##install conda dependencies
+echo "CREATING CONDA ENVIRONMENT"
 conda env create -f align_annotate.yml
 conda activate align_annotate
 
 ##download smoove docker image
+echo "DOWNLOADING SMOOVE" 
 docker pull brentp/smoove
 #docker run -it brentp/smoove smoove -h
 
