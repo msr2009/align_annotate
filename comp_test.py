@@ -8,31 +8,41 @@ def main(infiles, _filter):
 		gene_mut_dict = {}
 
 		_filter = set(_filter.split(","))
-
+		
+		dat_cols = {}
+	
 		for f in infiles:
 			#remove all the excess text from sample names
 			#assumes sample does not contain "."
 			sample = f.split("/")[-1].split(".")[0]
-		
+			
 			for line in open(f, 'r'):
 				#skip header lines
-				if line.startswith("#"): 
+				#unless it's the header, in which case
+				#id the columns we need
+				if line.startswith("#CHROM"):
+					header = line.strip().split("\t")
+					dat_cols = {header[i]: i for i in range(len(header)) }
+				elif line.startswith("#"): 
 					continue
+
 				l_strip = line.strip()
 				l = l_strip.split("\t")
-				
+
 				#filter for only mutations with 
 				#moderate or high predicted effects
-				if l[13] in _filter or _filter == [""]:
+				if l[dat_cols["ANN_Annotation_Impact"]] in _filter or _filter == [""]:	
 					
-					effect = l[21]
-					if effect == "":
-						effect = l[20]
-	
-					if l[14] in gene_mut_dict:
-						gene_mut_dict[l[14]].append([sample, "{}:{}({})".format(sample, l[17], effect), l_strip])
+					effect = ""
+					if l[dat_cols["ANN_HGVS.p"]] != "":
+						effect = l[dat_cols["ANN_HGVS.p"]]
 					else:
-						gene_mut_dict[l[14]] = [[sample, "{}:{}({})".format(sample, l[17], effect), l_strip]]
+						effect = l[dat_cols["ANN_HGVS.c"]]
+	
+					if l[dat_cols["ANN_Gene_Name"]] in gene_mut_dict:
+						gene_mut_dict[l[dat_cols["ANN_Gene_Name"]]].append([sample, "{}:{}({})".format(sample, l[dat_cols["ANN_Feature_ID"]], effect), l_strip])
+					else:
+						gene_mut_dict[l[dat_cols["ANN_Gene_Name"]]] = [[sample, "{}:{}({})".format(sample, l[dat_cols["ANN_Feature_ID"]], effect), l_strip]]
 	
 		#print output
 		for g in gene_mut_dict:
@@ -64,7 +74,6 @@ if __name__ == "__main__":
 		list_of_files = []
 		for line in open(args.file_list, "r"):
 			list_of_files.append(line.strip())
-#		print(len(list_of_files))
 		main(list_of_files, args.FILTER)
 	else:	
 		main(args.FILES, args.FILTER)	
