@@ -39,8 +39,8 @@ fi
 _NAME="${ALIGNMENTS%%.*}"
 
 #then perform basecalling 
-bcftools mpileup -Ou -f ${GENOME} ${ALIGNMENTS} | bcftools call -mv -Oz -o ${_NAME}.snv.vcf.gz
+bcftools mpileup -Ou -f ${GENOME} ${ALIGNMENTS} | bcftools call -mv -Oz -o ${_NAME}.snp.vcf.gz
 
 #soft-filter heterozygous site (GT="hom") and 
 #for low genotype quality ("GQ>=20")
-bcftools filter -s lowQual -i 'GQ>=20' ${_NAME} | bcftools filter -oZ -s Het -i 'GT=“hom"' -o ${_NAME}.snv.soft-filter.vcf.gz -Oz
+bcftools filter -s lowQual -i 'GQ>=20' ${_NAME} | bcftools filter -oZ -s Het -i 'GT=“hom"' -o ${_NAME}.snp.soft-filter.vcf.gz -Oz
