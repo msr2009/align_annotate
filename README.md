@@ -44,6 +44,23 @@ but certainly could be at some point. The current implementation performs the
 analysis in serial (one sample at a time), but at least is a "set it and forget
 it" sort of thing*
 
+## notes on computer architecture
+I wrote the vast majority of this pipeline on an Intel-based Mac (OSX ~10.9?).
+I then upgraded to an M1 Ultra Mac Studio (OS 12 Monterrey) and found a few
+hiccups. First, at the time I got the computer (6/2022) there were no conda
+packages for most of the programs (esp. bwa, samtools, bowtie2, and bcftools).
+These packages needed to be downloaded separately (or using brew, which was
+what I did, but carefully). I plan to write an installer for M1 Macs to get
+around this, but that hasn't happened. Second, GATK's HaplotypeCaller by default
+uses an Intel-based AVX accelerator in PairHMM to do basecalling. This doesn't
+exist for M1 Macs, so GATK warns that uses a MUCH SLOWER implementation --
+I'm not certain how much slower we're talking, but it took ~30 minutes to run on
+a single sample of a *C. elegans* genome with 34M reads. It's likely that being
+able to highly multiplex the other steps of the pipeline (aligning and
+post-processing, especially) will still make an M1-based version of the pipeline
+faster, and I also expect that GATK developers will implement something to get
+around this problem.
+
 ## auxiliary programs
 this pipeline was written with identifying causative mutations in forward
 genetic screens in *C. elegans*, and as such has a few analyses implemented that

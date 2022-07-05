@@ -52,6 +52,8 @@ _NAME="${ALIGNMENTS%%.*}"
 echo "alignments: ${ALIGNMENTS}"
 echo "genome: ${GENOME}"
 
+THREADS=1 ###removing SPARK-based multi-threading for now since GATK says it's NOT for production
+
 if [ $THREADS -ne 1 ]; then
 	if [ $GVCF -eq 0 ]; then	
 		gatk HaplotypeCallerSpark -I ${ALIGNMENTS} -O ${_NAME}.snp.vcf.gz -R ${GENOME} --spark-master local[${THREADS}]

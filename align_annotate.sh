@@ -180,7 +180,7 @@ echo "######################################"
 echo "PROCESSING ALIGNED READS"
 echo "######################################"
 
-sh process_alignment.sh ${_name}.bam
+sh process_alignment.sh -i ${_name}.bam -t ${THREADS}
 
 echo
 echo "######################################"
