@@ -4,7 +4,7 @@ comp_test.py
 Matt Rich, 08/2021
 """
 
-def main(infiles, _filter):
+def main(infiles, _filter, depth):
 		gene_mut_dict = {}
 
 		_filter = set(_filter.split(","))
@@ -33,16 +33,24 @@ def main(infiles, _filter):
 				#moderate or high predicted effects
 				if l[dat_cols["ANN_Annotation_Impact"]] in _filter or _filter == [""]:	
 					
+					#extract allele depths
+					AD = ""
+					if depth:
+						AD_ind = l[-2].split(":").index("AD")
+						AD = "[" + l[-1].split(":")[AD_ind] + "]"
+					
+					#extract mutation effect
 					effect = ""
 					if l[dat_cols["ANN_HGVS.p"]] != "":
 						effect = l[dat_cols["ANN_HGVS.p"]]
 					else:
 						effect = l[dat_cols["ANN_HGVS.c"]]
-	
+				
+					#extract other data for mutation (gene name, 
 					if l[dat_cols["ANN_Gene_Name"]] in gene_mut_dict:
-						gene_mut_dict[l[dat_cols["ANN_Gene_Name"]]].append([sample, "{}:{}({})".format(sample, l[dat_cols["ANN_Feature_ID"]], effect), l_strip])
+						gene_mut_dict[l[dat_cols["ANN_Gene_Name"]]].append([sample, "{}:{}({}{})".format(sample, l[dat_cols["ANN_Feature_ID"]], effect, AD), l_strip])
 					else:
-						gene_mut_dict[l[dat_cols["ANN_Gene_Name"]]] = [[sample, "{}:{}({})".format(sample, l[dat_cols["ANN_Feature_ID"]], effect), l_strip]]
+						gene_mut_dict[l[dat_cols["ANN_Gene_Name"]]] = [[sample, "{}:{}({}{})".format(sample, l[dat_cols["ANN_Feature_ID"]], effect, AD), l_strip]]
 	
 		#print output
 		for g in gene_mut_dict:
@@ -67,6 +75,8 @@ if __name__ == "__main__":
 		help = "file containing list of files to compare, one per line")
 	parser.add_argument('--filter', action='store', dest="FILTER", 
 		help="comma-delimited list of filters to apply", default="")
+	parser.add_argument('--readdepth', action='store_true', dest="RD", 
+		help="add read depth to output", default=False)
 	args = parser.parse_args()
 	
 	if args.file_list != None:
@@ -74,7 +84,7 @@ if __name__ == "__main__":
 		list_of_files = []
 		for line in open(args.file_list, "r"):
 			list_of_files.append(line.strip())
-		main(list_of_files, args.FILTER)
+		main(list_of_files, args.FILTER, args.RD)
 	else:	
-		main(args.FILES, args.FILTER)	
+		main(args.FILES, args.FILTER, args.RD)	
 
