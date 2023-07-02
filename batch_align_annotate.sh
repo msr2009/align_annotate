@@ -19,6 +19,7 @@ ALIGNER="bwa"
 BASECALLER="gatk"
 WORKING_DIR=
 TMPDIR=
+BGVCF="none"
 
 #display help
 HELP(){
@@ -42,6 +43,8 @@ HELP(){
 	echo "--basecaller		basecalling software to use" 
 	echo "				(samtools, gatk; default=gatk)"
 	echo "--no-smoove	do not genotype indels with smoove"
+	echo "--bgvcf		background multisample vcf with BGAF field"
+	echo "					must be made with make_background_vcf.py"
 	echo "-db			name of snpEff database for annotation" 
 	echo "				(default=Caenorhabditis_elegans)"
 	echo "-t, --threads		number of threads to use for processes (default=1)"
@@ -94,6 +97,10 @@ while [ $# -gt 0 ]; do
 		--overwrite)
 			OVERWRITE=1
 			shift 1
+			;;
+		--bgvcf)
+			BGVCF="$2"
+			shift 2
 			;;
 		--no-smoove)
 			SMOOVE=0
@@ -203,13 +210,13 @@ for strain in `awk '{FS="\t";OFS=","}NR>1{print $18, $19}' "${INFOFILE}"`; do
 									-g ${GENOME} -1 ${READ1} -2 ${READ2} \
 									-t ${THREADS} --aligner ${ALIGNER} \
 									--basecaller ${BASECALLER} --no-smoove \
-									--tmpdir ${TMPDIR}
+									--tmpdir ${TMPDIR} --bgvcf ${BGVCF}
 		else
 			sh align_annotate.sh -d ${WORKING_DIR} -x ${SAMPLE_NAME} \
 									-g ${GENOME} -1 ${READ1} -2 ${READ2} \
 									-t ${THREADS} --aligner ${ALIGNER} \
 									--basecaller ${BASECALLER} \
-									--tmpdir ${TMPDIR}
+									--tmpdir ${TMPDIR} --bgvcf ${BGVCF}
 		fi
 
 		#after processing, move FASTQ files into output folder

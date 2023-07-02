@@ -89,12 +89,16 @@ def main(vcf, bgvcf, bgaf, lowqual):
 
 	#output name will be programmatically named by stripping ".vcf.gz" and
 	#replacing with ".soft-filter.vcf.gz"
-	out_vcf = pysam.VariantFile(vcf.rstrip(".vcf.gz")+".soft-filter.vcf.gz", "w", header=out_header)
+	out_name = vcf.rstrip(".vcf.gz")+".soft-filter.vcf.gz"
+	out_vcf = pysam.VariantFile(out_name, "w", header=out_header)
 	for record in in_vcf.fetch():	
 		for f in filter_sets.pop(0):
 			record.filter.add(f)
 		out_vcf.write(record)
 	out_vcf.close()
+
+	#index the output vcf
+	subprocess.run("bcftools index {}".format(out_name), shell=True)
 
 	#finally, remove the tmp vcf file and its index
 	subprocess.run("rm {}/tmp.vcf.gz".format(pwd), shell=True)

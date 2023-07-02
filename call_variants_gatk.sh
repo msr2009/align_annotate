@@ -117,7 +117,7 @@ fi
 #after basecalling soft-filter variants for low quality (GQ>=20) and
 #heterozygous genotypes
 #only do this if not outputting gVCF
-if [ $GVCF -eq 0 ]; then
-	bcftools filter --threads ${THREADS} -s lowQual -i 'GQ>=10' ${_NAME}.snp.vcf.gz | bcftools filter --threads ${THREADS} -s Het -i 'GT="hom"' -o ${_NAME}.snp.soft-filter.vcf.gz -Oz
-	bcftools index ${_NAME}.snp.soft-filter.vcf.gz
-fi
+#if [ $GVCF -eq 0 ]; then
+#	bcftools filter --threads ${THREADS} -s lowQual -i 'GQ>=10' ${_NAME}.snp.vcf.gz | bcftools filter --threads ${THREADS} -s Het -i 'GT="hom"' -o ${_NAME}.snp.soft-filter.vcf.gz -Oz
+#	bcftools index ${_NAME}.snp.soft-filter.vcf.gz
+#fi

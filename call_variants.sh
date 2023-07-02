@@ -79,4 +79,4 @@ fi
 
 #soft-filter heterozygous site (GT="hom") and 
 #for low genotype quality ("GQ>=20")
-bcftools filter -s lowQual -i 'GQ>=10' ${_NAME}.snp.vcf.gz | bcftools filter -oZ -s Het -i 'GT=“hom"' -o ${_NAME}.snp.soft-filter.vcf.gz -Oz
+#bcftools filter -s lowQual -i 'GQ>=10' ${_NAME}.snp.vcf.gz | bcftools filter -oZ -s Het -i 'GT=“hom"' -o ${_NAME}.snp.soft-filter.vcf.gz -Oz

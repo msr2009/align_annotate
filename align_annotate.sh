@@ -12,6 +12,7 @@ THREADS=1
 DATABASE="Caenorhabditis_elegans"
 ALIGNER="bwa"
 BASECALLER="gatk"
+BGVCF="none"
 SMOOVE=1
 SNPEFF_INPUT=""
 TMPDIR=
@@ -34,6 +35,8 @@ HELP(){
 	echo "					(bwa, bowtie2; default=bwa)"
 	echo "--basecaller	basecalling software to use" 
 	echo "					(samtools, gatk; default=gatk)"
+	echo "--bgvcf		multisample vcf with BGAF field for background filtering"
+	echo "					must be made with 'make_background_vcf.py'"
 	echo "-db	name of snpEff database for annotation (default=Caenorhabditis_elegans)"
 	echo "-t, --threads	number of threads to use for processes"
 	echo "--tmpdir		directory for temporary files"
@@ -84,6 +87,10 @@ while [ $# -gt 0 ]; do
 			;;
 		--basecaller)
 			BASECALLER="$2"
+			shift 2
+			;;
+		--bgvcf)
+			BGVCF="$2"
 			shift 2
 			;;
 		--no-smoove)
@@ -215,7 +222,12 @@ then
 fi
 
 ###filter vcfs
-#sh filter_vcf.sh 
+if [ ${BGVCF} = "none" ]
+then
+	python soft-filter.py -v ${_name}.snp.vcf.gz
+else
+	python soft-filter.py -v ${_name}.snp.vcf.gz -b ${BGVCF}
+
 
 ###HARD CODING THIS IN FOR NOW BECAUSE MY NO-SMOOVE OPTION ISN'T WORKING....
 #SMOOVE=0
@@ -230,7 +242,7 @@ then
 	sh call_indels_smoove.sh -d ${WORKING_DIR}/smoove/ -n ${PREFIX} -g ${GENOME} -t ${THREADS}
 	
 	#concatenate snp and indel calls into same vcf file
-	bcftools concat -a -Oz -o ${_name}.all.soft-filter.vcf.gz ${_name}.snv.soft-filter.vcf.gz ${_name}.dup.vcf.gz ${_name}.del.vcf.gz
+	bcftools concat -a -Oz -o ${_name}.all.soft-filter.vcf.gz ${_name}.snp.soft-filter.vcf.gz ${_name}.dup.vcf.gz ${_name}.del.vcf.gz
 	SNPEFF_INPUT=${_name}.all.soft-filter.vcf.gz
 else
 	echo
