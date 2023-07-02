@@ -74,3 +74,4 @@ fi
 #then do all the processing	
 samtools collate -@ ${FEWER_THREADS} -O ${_NAME}.bam | samtools fixmate -@ ${FEWER_THREADS} -m - - | samtools sort -@ ${THREADS} - | samtools markdup -@ ${FEWER_THREADS} -s - ${_NAME}.srt.rmdup.bam
 samtools index -@ ${FEWER_THREADS} ${_NAME}.srt.rmdup.bam ${_NAME}.srt.rmdup.bam.bai
+chmod a+r ${_NAME}.srt.rmdup.bam*

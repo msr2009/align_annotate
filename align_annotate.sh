@@ -14,6 +14,7 @@ ALIGNER="bwa"
 BASECALLER="gatk"
 SMOOVE=1
 SNPEFF_INPUT=""
+TMPDIR=
 
 #display help
 HELP(){
@@ -35,6 +36,7 @@ HELP(){
 	echo "					(samtools, gatk; default=gatk)"
 	echo "-db	name of snpEff database for annotation (default=Caenorhabditis_elegans)"
 	echo "-t, --threads	number of threads to use for processes"
+	echo "--tmpdir		directory for temporary files"
 	echo "--no-smoove	do not use smoove to call indels"
 	echo "-h, --help	show this help"
 }
@@ -87,6 +89,10 @@ while [ $# -gt 0 ]; do
 		--no-smoove)
 			SMOOVE=0
 			shift 1
+			;;
+		--tmpdir)
+			TMPDIR="$2"
+			shift 2
 			;;
 		-h|--help) #HELP ME PLEASE!
 			HELP
@@ -143,6 +149,11 @@ fi
 ##############
 _name=${WORKING_DIR}/${PREFIX}
 
+if [ -z ${TMPDIR} ]
+then
+		TMPDIR=${WORKING_DIR}/tempdir/
+fi
+
 echo
 echo "######################################"
 echo NAME: ${PREFIX}
@@ -153,6 +164,7 @@ echo WORKING DIRECTORY: ${WORKING_DIR}
 echo ALIGNER: ${ALIGNER}
 echo BASECALLER: ${BASECALLER}
 echo SNPEFF DATABASE: ${DATABASE}
+echo TMPDIR: ${TMPDIR}
 echo "######################################"
 
 #make working directory if it doesn't exist
@@ -194,9 +206,16 @@ then
 elif [ ${BASECALLER} = "gatk" ]
 then
 	echo "basecalling with gatk"
-	sh call_variants_gatk.sh -a ${_name}.srt.rmdup.bam -g ${GENOME} -t ${THREADS}
+	if [ ${THREADS} -eq 1 ]
+	then
+		sh call_variants_gatk.sh -a ${_name}.srt.rmdup.bam -g ${GENOME} -t ${THREADS} 
+	else
+		sh call_variants_gatk.sh -a ${_name}.srt.rmdup.bam -g ${GENOME} -t ${THREADS} --parallel 5000000 --tmpdir ${TMPDIR}
+	fi
 fi
 
+###filter vcfs
+#sh filter_vcf.sh 
 
 ###HARD CODING THIS IN FOR NOW BECAUSE MY NO-SMOOVE OPTION ISN'T WORKING....
 #SMOOVE=0

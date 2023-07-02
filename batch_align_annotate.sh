@@ -18,6 +18,7 @@ DATABASE="Caenorhabditis_elegans"
 ALIGNER="bwa"
 BASECALLER="gatk"
 WORKING_DIR=
+TMPDIR=
 
 #display help
 HELP(){
@@ -44,6 +45,7 @@ HELP(){
 	echo "-db			name of snpEff database for annotation" 
 	echo "				(default=Caenorhabditis_elegans)"
 	echo "-t, --threads		number of threads to use for processes (default=1)"
+	echo "--tmpdir		directory for temporary files"
 	echo "--overwrite		overwrite existing output if it already exists"
 	echo "-h, --help		show this help"
 }
@@ -96,6 +98,10 @@ while [ $# -gt 0 ]; do
 		--no-smoove)
 			SMOOVE=0
 			shift 1
+			;;
+		--tmpdir)
+			TMPDIR="$2"
+			shift 2
 			;;
 		-h|--help) #HELP ME PLEASE!
 			HELP
@@ -151,7 +157,7 @@ fi
 #NOTE: this step relies on static positions for columns in
 #the mapping file from the HCI sequence core. 
 
-echo "smoove=${SMOOVE}"
+#echo "smoove=${SMOOVE}"
 
 for strain in `awk '{FS="\t";OFS=","}NR>1{print $18, $19}' "${INFOFILE}"`; do
 		
@@ -163,6 +169,11 @@ for strain in `awk '{FS="\t";OFS=","}NR>1{print $18, $19}' "${INFOFILE}"`; do
 		SAMPLE_NAME=$(echo $strain | cut -d "," -f 2 | sed 's/#//g')
 		WORKING_DIR=${OUTPUT_DIR}/${SAMPLE_NAME}/
 		
+		#set tmpdir
+		if [-z ${TMPDIR} ]
+		then
+			TMPDIR=${WORKING_DIR}/tempdir/
+		fi
 		
 		if [ ${OVERWRITE} -eq 0 ] && [ -f ${WORKING_DIR}/*R1_001.fastq.gz ]
 		then
@@ -191,12 +202,14 @@ for strain in `awk '{FS="\t";OFS=","}NR>1{print $18, $19}' "${INFOFILE}"`; do
 			sh align_annotate.sh -d ${WORKING_DIR} -x ${SAMPLE_NAME} \
 									-g ${GENOME} -1 ${READ1} -2 ${READ2} \
 									-t ${THREADS} --aligner ${ALIGNER} \
-									--basecaller ${BASECALLER} --no-smoove
+									--basecaller ${BASECALLER} --no-smoove \
+									--tmpdir ${TMPDIR}
 		else
 			sh align_annotate.sh -d ${WORKING_DIR} -x ${SAMPLE_NAME} \
 									-g ${GENOME} -1 ${READ1} -2 ${READ2} \
 									-t ${THREADS} --aligner ${ALIGNER} \
-									--basecaller ${BASECALLER}
+									--basecaller ${BASECALLER} \
+									--tmpdir ${TMPDIR}
 		fi
 
 		#after processing, move FASTQ files into output folder
