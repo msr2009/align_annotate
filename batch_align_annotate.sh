@@ -206,13 +206,13 @@ for strain in `awk '{FS="\t";OFS=","}NR>1{print $20, $21}' "${INFOFILE}"`; do
 
 		if [ ${SMOOVE} -eq 0 ]
 		then
-			sh align_annotate.sh -d ${WORKING_DIR} -x ${SAMPLE_NAME} \
+			bash align_annotate.sh -d ${WORKING_DIR} -x ${SAMPLE_NAME} \
 									-g ${GENOME} -1 ${READ1} -2 ${READ2} \
 									-t ${THREADS} --aligner ${ALIGNER} \
 									--basecaller ${BASECALLER} --no-smoove \
 									--tmpdir ${TMPDIR} --bgvcf ${BGVCF}
 		else
-			sh align_annotate.sh -d ${WORKING_DIR} -x ${SAMPLE_NAME} \
+			bash align_annotate.sh -d ${WORKING_DIR} -x ${SAMPLE_NAME} \
 									-g ${GENOME} -1 ${READ1} -2 ${READ2} \
 									-t ${THREADS} --aligner ${ALIGNER} \
 									--basecaller ${BASECALLER} \

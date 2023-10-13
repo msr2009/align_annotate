@@ -196,10 +196,10 @@ echo "######################################"
 
 if [ ${ALIGNER} = "bwa" ]
 then
-	sh aln_bwa.sh -g ${GENOME} -x ${_name} -t ${THREADS} -1 ${READ1} -2 ${READ2}
+	bash aln_bwa.sh -g ${GENOME} -x ${_name} -t ${THREADS} -1 ${READ1} -2 ${READ2}
 elif [ ${ALIGNER} = "bowtie2" ]
 then
-	sh aln_bt2.sh -g ${GENOME} -x ${_name} -t ${THREADS} -1 ${READ1} -2 ${READ2}
+	bash aln_bt2.sh -g ${GENOME} -x ${_name} -t ${THREADS} -1 ${READ1} -2 ${READ2}
 fi
 
 echo
@@ -207,7 +207,7 @@ echo "######################################"
 echo "PROCESSING ALIGNED READS"
 echo "######################################"
 
-sh process_alignment.sh -i ${_name}.bam -t ${THREADS}
+bash process_alignment.sh -i ${_name}.bam -t ${THREADS}
 
 echo
 echo "######################################"
@@ -217,15 +217,15 @@ echo "######################################"
 if [ ${BASECALLER} = "samtools" ]
 then
 	echo "basecalling with samtools"
-	sh call_variants.sh ${_name}.srt.rmdup.bam ${GENOME} -t ${THREADS}
+	bash call_variants.sh ${_name}.srt.rmdup.bam ${GENOME} -t ${THREADS}
 elif [ ${BASECALLER} = "gatk" ]
 then
 	echo "basecalling with gatk"
 	if [ ${THREADS} -eq 1 ]
 	then
-		sh call_variants_gatk.sh -a ${_name}.srt.rmdup.bam -g ${GENOME} -t ${THREADS} 
+		bash call_variants_gatk.sh -a ${_name}.srt.rmdup.bam -g ${GENOME} -t ${THREADS} 
 	else
-		sh call_variants_gatk.sh -a ${_name}.srt.rmdup.bam -g ${GENOME} -t ${THREADS} --parallel 5000000 --tmpdir ${TMPDIR}
+		bash call_variants_gatk.sh -a ${_name}.srt.rmdup.bam -g ${GENOME} -t ${THREADS} --parallel 5000000 --tmpdir ${TMPDIR}
 	fi
 fi
 
@@ -247,7 +247,7 @@ then
 	echo "CALLING INDELS"
 	echo "######################################"
 
-	sh call_indels_smoove.sh -d ${WORKING_DIR}/smoove/ -n ${PREFIX} -g ${GENOME} -t ${THREADS}
+	bash call_indels_smoove.sh -d ${WORKING_DIR}/smoove/ -n ${PREFIX} -g ${GENOME} -t ${THREADS}
 	
 	#concatenate snp and indel calls into same vcf file
 	bcftools concat -a -Oz -o ${_name}.all.soft-filter.vcf.gz ${_name}.snp.soft-filter.vcf.gz ${_name}.dup.vcf.gz ${_name}.del.vcf.gz
@@ -265,6 +265,6 @@ echo "######################################"
 echo "ANNOTATING VCF WITH SNPEFF"
 echo "######################################"
 
-sh snpeff_annotation.sh --vcf ${SNPEFF_INPUT} --db ${DATABASE}
+bash snpeff_annotation.sh --vcf ${SNPEFF_INPUT} --db ${DATABASE}
 
 
