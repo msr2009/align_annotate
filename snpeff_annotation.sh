@@ -45,7 +45,7 @@ fi
 
 
 ###perform snpeff annotation
-snpeff eff -noStats -ud 0 ${DATABASE} ${VCF} > ${ANN_NAME}.vcf
+snpEff eff -noStats -ud 0 ${DATABASE} ${VCF} > ${ANN_NAME}.vcf
 ###convert annotated VCF to a more human-readable format
 python snpeff2tsv.py --vcf ${ANN_NAME}.vcf > ${ANN_NAME}.tsv
 
