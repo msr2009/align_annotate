@@ -12,10 +12,13 @@ marked these places with "###ADD NEW FILTERS"
 Matt Rich, 6/23
 """
 
-import pysam, subprocess
+import pysam, subprocess, sys
 
 
 def build_filter_sets(rec, genotype, lowqual, background):
+	f_dict = {"Het": False,
+					"lowQual": False,
+					"background": 0 }
 	f_string = []
 	#have to do background analysis as try-except, bc
 	#unique variants in new vcf dont' get merged with 
@@ -24,16 +27,19 @@ def build_filter_sets(rec, genotype, lowqual, background):
 	if background != None:
 		try:
 			if rec.info["BGAF"] > background:
+				f_dict["background"] = rec.info["BGAF"]
 				f_string.append("background")
 		except KeyError:
 			pass
 
 	#heterozygous sites
 	if genotype[0] != genotype[1]: 
+		f_dict["Het"] = 1
 		f_string.append("Het")
     
 	#low quality sites
 	if [s['GQ'] for s in rec.samples.values()][-1] < 15:
+		f_dict["lowQual"] = 1
 		f_string.append("lowQual")
 	
 	###ADD NEW FILTERS
@@ -43,8 +49,7 @@ def build_filter_sets(rec, genotype, lowqual, background):
 		f_string.append("PASS")
     
 	#add record's filter string to list
-	return f_string
-
+	return f_string, f_dict
 
 def main(vcf, bgvcf, bgaf, lowqual):
 	
@@ -65,13 +70,16 @@ def main(vcf, bgvcf, bgaf, lowqual):
 	tmpvcf = pysam.VariantFile("{}/tmp.vcf.gz".format(pwd), "r")
 	
 	filter_sets = []
+	filter_dicts = []
 	#calculate the filter string for every variant
 	#that is present in the last sample (our sample of interest)
 	for record in tmpvcf.fetch():
     	#if our sample (at -1) has a genotype, it isn't reference
 		gt = [s['GT'] for s in record.samples.values()][-1] 
 		if gt != (None, None):
-			filter_sets.append(build_filter_sets(record, gt, lowqual, bgaf))
+			rec_filters = build_filter_sets(record, gt, lowqual, bgaf)
+			filter_sets.append(rec_filters[0])
+			filter_dicts.append(rec_filters[1])
 
 	#now we build a new VCF file, in which we loop through out 
 	#to-be-filtered vcf, and replace the FILTER field
@@ -82,10 +90,25 @@ def main(vcf, bgvcf, bgaf, lowqual):
 	in_vcf = pysam.VariantFile(vcf, "r")
 
 	out_header = in_vcf.header
+
 	###ADD NEW FILTERS
-	out_header.filters.add("Het", None, None, "Heterozygous variant")
-	out_header.filters.add("lowQual", None, None, "variant has low genotype quality (GQ)")
-	out_header.filters.add("background", None, None, "allele frequency above threshold in background samples")
+	new_filters = [
+		["Het", None, None, "Heterozygous variant"],
+		["background", None, None, "allele frequency above threshold in background samples"],
+		["lowQual", None, None, "variant has low genotype quality (GQ)"]
+		["BGAF", None, None, "background allele frequency"]
+	]
+
+	#if header for filter already exists, report it but don't worry about it
+	for nf in new_filters:
+		try:
+			out_header.filters.add(nf[0], nf[1], nf[2], nf[3])
+		except ValueError:
+			print("{} id header already exists.".format(nf[0]), file=sys.stderr)
+			
+#	out_header.filters.add("lowQual", None, None, "variant has low genotype quality (GQ)")
+#	out_header.filters.add("background", None, None, "allele frequency above threshold in background samples")
+	out_header.info.add("BGAF", "1", "Float", "Allele frequency in background strains")
 
 	#output name will be programmatically named by stripping ".vcf.gz" and
 	#replacing with ".soft-filter.vcf.gz"
@@ -94,6 +117,8 @@ def main(vcf, bgvcf, bgaf, lowqual):
 	for record in in_vcf.fetch():	
 		for f in filter_sets.pop(0):
 			record.filter.add(f)
+		#add bgaf info to record also
+		record.info["BGAF"] = filter_dicts.pop(0)["background"]
 		out_vcf.write(record)
 	out_vcf.close()
 

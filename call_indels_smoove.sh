@@ -55,6 +55,7 @@ _GENOMEFASTA=`basename ${GENOME}`
 
 #run smoove within docker 
 docker run \
+		--platform linux/amd64 \
 		--mount type=bind,src=${_FASTAFOLDER},dst=/FASTA \
 	  	--mount type=bind,src=${WORKINGDIR},dst=/BAM \
 		brentp/smoove smoove call -d --genotype \

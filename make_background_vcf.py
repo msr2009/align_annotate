@@ -21,13 +21,17 @@ def calculate_bgaf(rec):
 def main(file_list, out_name):
 	pwd = subprocess.run("dirname {}".format(out_name), shell=True, capture_output=True).stdout.decode().strip()
 	#do merge
-	subprocess.run('bcftools merge -m none -o {}/tmp.vcf.gz --force-samples -Oz -l {}'.format(pwd, file_list), shell=True)
+	subprocess.run('bcftools merge -m none -l {} | bcftools norm -m- -Oz -o {}/tmp.vcf.gz'.format(file_list, pwd), shell=True)
 	subprocess.run("bcftools index {}/tmp.vcf.gz".format(pwd), shell=True)
 
 	merged_vcf = pysam.VariantFile("{}/tmp.vcf.gz".format(pwd), 'r')
 	#make new header for output
 	out_header = merged_vcf.header
-	out_header.info.add('BGAF', '1', 'Float', 'Background allele frequency')
+	#throws a ValueError if the info line already exists in header, so
+	try:
+		out_header.info.add('BGAF', '1', 'Float', 'Background allele frequency')
+	except ValueError:
+		pass
 	#make output
 	out_vcf = pysam.VariantFile(out_name, "w", header=out_header)
 

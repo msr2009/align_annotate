@@ -166,8 +166,8 @@ fi
 
 #echo "smoove=${SMOOVE}"
 
-for strain in `awk '{FS="\t";OFS=","}NR>1{print $18, $19}' "${INFOFILE}"`; do
-		
+for strain in `awk '{FS="\t";OFS=","}NR>1{print $20, $21}' "${INFOFILE}"`; do
+		echo $strain
 		#initial values for each sample
 		STARTTIME=`date +%s`
 		READ1=0
@@ -177,7 +177,7 @@ for strain in `awk '{FS="\t";OFS=","}NR>1{print $18, $19}' "${INFOFILE}"`; do
 		WORKING_DIR=${OUTPUT_DIR}/${SAMPLE_NAME}/
 		
 		#set tmpdir
-		if [-z ${TMPDIR} ]
+		if [ -z ${TMPDIR} ]
 		then
 			TMPDIR=${WORKING_DIR}/tempdir/
 		fi

@@ -35,7 +35,14 @@ while [ $# -gt 0 ]; do
 	esac
 done
 
-ANN_NAME=${VCF%%.vcf.gz}.snpeff
+ANN_NAME=${VCF}.snpeff
+if [[ ${VCF} == *.vcf.gz ]]; then
+	ANN_NAME=${VCF%%.vcf.gz}.snpeff
+elif [[ ${VCF} == *.vcf ]]; then
+	ANN_NAME=${VCF%%.vcf}.snpeff
+fi
+
+
 
 ###perform snpeff annotation
 snpeff eff -noStats -ud 0 ${DATABASE} ${VCF} > ${ANN_NAME}.vcf

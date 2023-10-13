@@ -181,6 +181,14 @@ then
 		mkdir ${WORKING_DIR}	
 fi
 
+#make tempdir if it doesn't exist
+
+if [ ! -d ${TMPDIR} ]
+then
+		echo "Temporary directory (${TMPDIR}) does not exist. Creating."
+		mkdir ${TMPDIR}	
+fi
+
 echo
 echo "######################################"
 echo "ALIGNING READS TO GENOME"
@@ -227,7 +235,7 @@ then
 	python soft-filter.py -v ${_name}.snp.vcf.gz
 else
 	python soft-filter.py -v ${_name}.snp.vcf.gz -b ${BGVCF}
-
+fi
 
 ###HARD CODING THIS IN FOR NOW BECAUSE MY NO-SMOOVE OPTION ISN'T WORKING....
 #SMOOVE=0
