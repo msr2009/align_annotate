@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 set -o nounset
 set -o errexit
-set -o pipefail
+#set -o pipefail #no POSIX
 
 #requires bowtie2, bwa, samtools
 #requires snpeff, snpeff2tsv.py
@@ -206,13 +206,13 @@ for strain in `awk '{FS="\t";OFS=","}NR>1{print $20, $21}' "${INFOFILE}"`; do
 
 		if [ ${SMOOVE} -eq 0 ]
 		then
-			bash align_annotate.sh -d ${WORKING_DIR} -x ${SAMPLE_NAME} \
+			sh align_annotate.sh -d ${WORKING_DIR} -x ${SAMPLE_NAME} \
 									-g ${GENOME} -1 ${READ1} -2 ${READ2} \
 									-t ${THREADS} --aligner ${ALIGNER} \
 									--basecaller ${BASECALLER} --no-smoove \
 									--tmpdir ${TMPDIR} --bgvcf ${BGVCF}
 		else
-			bash align_annotate.sh -d ${WORKING_DIR} -x ${SAMPLE_NAME} \
+			sh align_annotate.sh -d ${WORKING_DIR} -x ${SAMPLE_NAME} \
 									-g ${GENOME} -1 ${READ1} -2 ${READ2} \
 									-t ${THREADS} --aligner ${ALIGNER} \
 									--basecaller ${BASECALLER} \

@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 set -o nounset
 set -o errexit
-set -o pipefail
+#set -o pipefail #no POSIX
 
 #requires docker, smoove docker image
 #requires bcftools, bedtools

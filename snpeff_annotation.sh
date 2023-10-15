@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 set -o nounset
 set -o errexit
-set -o pipefail
+#set -o pipefail
 
 #requires bowtie2, samtools
 
