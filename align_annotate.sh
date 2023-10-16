@@ -244,6 +244,12 @@ then
 	echo "CALLING INDELS"
 	echo "######################################"
 
+	if [ ! -d ${TMPDIR} ]
+	then
+			echo "smoove working directory does not exist. Creating."
+			mkdir ${WORKING_DIR}/smoove/
+	fi
+
 	sh call_indels_smoove.sh -d ${WORKING_DIR}/smoove/ -n ${PREFIX} -g ${GENOME} -t ${THREADS}
 	
 	#concatenate snp and indel calls into same vcf file
