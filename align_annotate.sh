@@ -221,12 +221,9 @@ then
 elif [ ${BASECALLER} = "gatk" ]
 then
 	echo "basecalling with gatk"
-	if [ ${THREADS} -eq 1 ]
-	then
-		sh call_variants_gatk.sh -a ${_name}.srt.rmdup.bam -g ${GENOME} -t ${THREADS} 
-	else
-		sh call_variants_gatk.sh -a ${_name}.srt.rmdup.bam -g ${GENOME} -t ${THREADS} --parallel 5000000 --tmpdir ${TMPDIR}
-	fi
+	###need to change this to check if intel proc, then use
+	###call_variants_gatk_parallel.sh
+	sh call_variants_gatk.sh -a ${_name}.srt.rmdup.bam -g ${GENOME} -t ${THREADS} 
 fi
 
 ###filter vcfs
