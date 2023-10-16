@@ -244,7 +244,7 @@ then
 	echo "CALLING INDELS"
 	echo "######################################"
 
-	if [ ! -d ${TMPDIR} ]
+	if [ ! -d ${WORKING_DIR}/smoove/ ]
 	then
 			echo "smoove working directory does not exist. Creating."
 			mkdir ${WORKING_DIR}/smoove/
