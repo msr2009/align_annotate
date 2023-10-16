@@ -95,7 +95,7 @@ def main(vcf, bgvcf, bgaf, lowqual):
 	new_filters = [
 		["Het", None, None, "Heterozygous variant"],
 		["background", None, None, "allele frequency above threshold in background samples"],
-		["lowQual", None, None, "variant has low genotype quality (GQ)"]
+		["lowQual", None, None, "variant has low genotype quality (GQ)"],
 		["BGAF", None, None, "background allele frequency"]
 	]
 
