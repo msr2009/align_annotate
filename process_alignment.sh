@@ -14,26 +14,6 @@ HELP(){
 	echo 
 }
 
-
-#check for appropriate argument
-#if not there, kill and print help
-#if [ $# -eq 1 ]
-#then
-#	if [[ ($1 == *.sam) || ($1 == *.bam) ]]
-#	then
-#		ALIGNMENTS="$1"
-#	else
-#		echo "ERROR: incorrect input format. requires .sam or .bam"
-#		echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-#		echo
-#		HELP
-#		exit
-#	fi
-#else		
-#	HELP
-#	exit
-#fi
-
 THREADS=1
 
 if [ $# -eq 0 ]
@@ -66,10 +46,16 @@ FEWER_THREADS=$(( $THREADS - 1 ))
 _NAME="${ALIGNMENTS%%.*}"
 
 #if the file isn't a bam already, then make one
-if [[ ${ALIGNMENTS} == *.sam ]] 
-then
-	samtools view -bS ${_NAME}.bam
-fi
+
+case ${ALIGNMENTS} in *.sam)
+		samtools view -bo ${_NAME}.bam ${_NAME}.sam
+esac
+
+#apparently I can't do this for posix-ness
+#if [[ ${ALIGNMENTS} == *.sam ]] 
+#then
+#	samtools view -bS ${_NAME}.bam
+#fi
 
 #then do all the processing	
 samtools collate -@ ${FEWER_THREADS} -O ${_NAME}.bam | samtools fixmate -@ ${FEWER_THREADS} -m - - | samtools sort -@ ${THREADS} - | samtools markdup -@ ${FEWER_THREADS} -s - ${_NAME}.srt.rmdup.bam
