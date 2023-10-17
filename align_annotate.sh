@@ -250,7 +250,7 @@ then
 			mkdir ${WORKING_DIR}/smoove/
 	fi
 
-	sh call_indels_smoove.sh -d ${WORKING_DIR}/smoove/ -n ${PREFIX} -g ${GENOME} -t ${THREADS}
+	sh call_indels_smoove.sh -d ${WORKING_DIR}/smoove/ -n ${_name} -g ${GENOME} -t ${THREADS}
 	
 	#concatenate snp and indel calls into same vcf file
 	bcftools concat -a -Oz -o ${_name}.all.soft-filter.vcf.gz ${_name}.snp.soft-filter.vcf.gz ${_name}.dup.vcf.gz ${_name}.del.vcf.gz
