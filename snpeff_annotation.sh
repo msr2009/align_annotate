@@ -35,13 +35,23 @@ while [ $# -gt 0 ]; do
 	esac
 done
 
-ANN_NAME=${VCF}.snpeff
-if [[ ${VCF} == *.vcf.gz ]]; then
-	ANN_NAME=${VCF%%.vcf.gz}.snpeff
-elif [[ ${VCF} == *.vcf ]]; then
-	ANN_NAME=${VCF%%.vcf}.snpeff
-fi
+#ANN_NAME=${VCF}.snpeff
+#if [[ ${VCF} == *.vcf.gz ]]; then
+#	ANN_NAME=${VCF%%.vcf.gz}.snpeff
+#elif [[ ${VCF} == *.vcf ]]; then
+#	ANN_NAME=${VCF%%.vcf}.snpeff
+#fi
 
+ANN_NAME=
+case ${VCF} in 
+	*.vcf.gz)
+		ANN_NAME=${VCF%%.vcf.gz}.snpeff
+		;;
+	*.vcf)
+		ANN_NAME=${VCF%%.vcf}.snpeff
+		;;
+esac
+		
 
 
 ###perform snpeff annotation
