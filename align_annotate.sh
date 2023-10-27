@@ -250,17 +250,22 @@ then
 			mkdir ${WORKING_DIR}/smoove/
 	fi
 
-	sh call_indels_smoove.sh -d ${WORKING_DIR}/smoove/ -n ${_name} -g ${GENOME} -t ${THREADS}
+	#call indels with smoove
+	sh call_indels_smoove.sh -d ${WORKING_DIR}/smoove/ -n ${PREFIX} -g ${GENOME} -t ${THREADS}
 	
-	#concatenate snp and indel calls into same vcf file
-	bcftools concat -a -Oz -o ${_name}.all.soft-filter.vcf.gz ${_name}.snp.soft-filter.vcf.gz ${_name}.dup.vcf.gz ${_name}.del.vcf.gz
-	SNPEFF_INPUT=${_name}.all.soft-filter.vcf.gz
+	#process smoove vcf into del and dup files
+	sh process_indels.sh -d ${WORKING_DIR} --vcf ${WORKING_DIR}/smoove/${_name}-smoove.genotyped.vcf.gz
+
+#	#concatenate snp and indel calls into same vcf file
+#	bcftools concat -a -Oz -o ${_name}.all.soft-filter.vcf.gz ${_name}.snp.soft-filter.vcf.gz ${_name}.dup.vcf.gz ${_name}.del.vcf.gz
+#	SNPEFF_INPUT=${_name}.all.soft-filter.vcf.gz
+	
 else
 	echo
 	echo "######################################"
 	echo "SKIPPING INDEL CALLING STEP"
 	echo "######################################"
-	SNPEFF_INPUT=${_name}.snp.soft-filter.vcf.gz
+#	SNPEFF_INPUT=${_name}.snp.soft-filter.vcf.gz
 fi
 
 echo
@@ -268,6 +273,14 @@ echo "######################################"
 echo "ANNOTATING VCF WITH SNPEFF"
 echo "######################################"
 
-sh snpeff_annotation.sh --vcf ${SNPEFF_INPUT} --db ${DATABASE}
+#always call snp file
+sh snpeff_annotation.sh --vcf ${_name}.snp.soft-filter.vcf.gz --db ${DATABASE}
 
+#if dup and del files exist, also call those
+if [ -f ${_name}.dup.vcf.gz ]; then
+	sh snpeff_annotation.sh --vcf ${_name}.dup.vcf.gz --db ${DATABASE}
+fi
 
+if [ -f ${_name}.del.vcf.gz ]; then
+	sh snpeff_annotation.sh --vcf ${_name}.del.vcf.gz --db ${DATABASE}
+fi

@@ -51,17 +51,18 @@ done
 
 _FASTAFOLDER=`dirname ${GENOME}`
 _GENOMEFASTA=`basename ${GENOME}`
-SMOOVEVCF=${WORKINGDIR}/smoove/${NAME}-smoove.genotyped.vcf.gz
+SMOOVEDIR=${WORKINGDIR}/smoove/
+SMOOVEVCF=${SMOOVEDIR}/${NAME}-smoove.genotyped.vcf.gz
 
 #if smoove has been run before, there will be a .csi index 
 #the presence of this causes smoove to stop running before 
 #doing the bcftools splits below. So, let's remove everything 
 #from the smoove directory before running
 
-if [ -d '${WORKINGDIR/smoove/' ]; then
-	rm ${WORKINGDIR}/smoove/*
+if [ -d ${SMOOVEDIR} ]; then
+	echo "found existing smoove directory. overwriting."
+	rm -f ${SMOOVEDIR}/*
 fi
-
 
 #run smoove within docker 
 docker run \
@@ -82,10 +83,14 @@ docker run \
 #3) everything else (not DEL or DUP)
 #then we can concat everything together with the snvs vcf
 
-bcftools filter -i 'SVTYPE="DEL" & DHBFC<0.25 & SVLEN>-50000 & SVLEN<50000' -Oz -o ${WORKINGDIR}/${NAME}.del.vcf.gz ${SMOOVEVCF}
-bcftools index ${WORKINGDIR}/${NAME}.del.vcf.gz
+###these parts are getting moved to their own script, since 
+###smoove exits after trying to re-index after duphold (this 
+###is a bug in smoove, I think). 
 
-bcftools filter -i 'SVTYPE="DUP" & DHBFC>1.75 & SVLEN>-50000 & SVLEN<50000' -Oz -o ${WORKINGDIR}/${NAME}.dup.vcf.gz ${SMOOVEVCF}
-bcftools index ${WORKINGDIR}/${NAME}.dup.vcf.gz
+#bcftools filter -i 'SVTYPE="DEL" & DHBFC<0.25 & SVLEN>-50000 & SVLEN<50000' -Oz -o ${WORKINGDIR}/${NAME}.del.vcf.gz ${SMOOVEVCF}
+#bcftools index ${WORKINGDIR}/${NAME}.del.vcf.gz
 
-bcftools filter -i 'SVLEN>=50000 | SVLEN<=-50000' -Oz -o ${WORKINGDIR}/${NAME}.longSV.vcf.gz ${SMOOVEVCF}
+#bcftools filter -i 'SVTYPE="DUP" & DHBFC>1.75 & SVLEN>-50000 & SVLEN<50000' -Oz -o ${WORKINGDIR}/${NAME}.dup.vcf.gz ${SMOOVEVCF}
+#bcftools index ${WORKINGDIR}/${NAME}.dup.vcf.gz
+
+#bcftools filter -i 'SVLEN>=50000 | SVLEN<=-50000' -Oz -o ${WORKINGDIR}/${NAME}.longSV.vcf.gz ${SMOOVEVCF}
