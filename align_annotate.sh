@@ -244,14 +244,14 @@ then
 	echo "CALLING INDELS"
 	echo "######################################"
 
-	if [ ! -d ${WORKING_DIR}/smoove/ ]
-	then
-			echo "smoove working directory does not exist. Creating."
-			mkdir ${WORKING_DIR}/smoove/
-	fi
+#	if [ ! -d ${WORKING_DIR}/smoove/ ]
+#	then
+#			echo "smoove working directory does not exist. Creating."
+#			mkdir ${WORKING_DIR}/smoove/
+#	fi
 
 	#call indels with smoove
-	sh call_indels_smoove.sh -d ${WORKING_DIR}/smoove/ -n ${PREFIX} -g ${GENOME} -t ${THREADS}
+	sh call_indels_smoove.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
 	
 	#process smoove vcf into del and dup files
 	sh process_indels.sh -d ${WORKING_DIR} --vcf ${WORKING_DIR}/smoove/${_name}-smoove.genotyped.vcf.gz
