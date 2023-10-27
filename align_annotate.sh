@@ -254,7 +254,7 @@ then
 	sh call_indels_smoove.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
 	
 	#process smoove vcf into del and dup files
-	sh process_indels.sh -d ${WORKING_DIR} --vcf ${WORKING_DIR}/smoove/${_name}-smoove.genotyped.vcf.gz
+	sh process_indels.sh -d ${WORKING_DIR} --vcf ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.vcf.gz
 
 #	#concatenate snp and indel calls into same vcf file
 #	bcftools concat -a -Oz -o ${_name}.all.soft-filter.vcf.gz ${_name}.snp.soft-filter.vcf.gz ${_name}.dup.vcf.gz ${_name}.del.vcf.gz
