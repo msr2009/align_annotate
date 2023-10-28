@@ -131,9 +131,6 @@ echo "######################################"
 echo "ANNOTATING VCF WITH SNPEFF"
 echo "######################################"
 
-#always call snp file
-sh snpeff_annotation.sh --vcf ${_name}.snp.soft-filter.vcf.gz --db ${DATABASE}
-
 #if dup and del files exist, also call those
 if [ -f ${_name}.dup.vcf.gz ]; then
 	sh snpeff_annotation.sh --vcf ${_name}.dup.vcf.gz --db ${DATABASE}
