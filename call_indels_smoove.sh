@@ -64,33 +64,27 @@ if [ -d ${SMOOVEDIR} ]; then
 	rm -f ${SMOOVEDIR}/*
 fi
 
-#run smoove within docker 
+#run smoove within docker  
+#(without duphold)
 docker run \
-		--platform linux/amd64 \
-		--mount type=bind,src=${_FASTAFOLDER},dst=/FASTA \
-	  	--mount type=bind,src=${WORKINGDIR},dst=/BAM \
-		brentp/smoove smoove call -d --genotype \
-		--name ${NAME} \
-		--outdir /BAM/smoove/ \
-		--fasta /FASTA/${_GENOMEFASTA} \
-		/BAM/${NAME}.srt.rmdup.bam
+               --platform linux/amd64 \
+               --mount type=bind,src=${_FASTAFOLDER},dst=/FASTA \
+               --mount type=bind,src=${WORKINGDIR},dst=/BAM \
+               brentp/smoove smoove call --genotype\
+               --name ${NAME} \
+               --outdir /BAM/smoove/ \
+               --fasta /FASTA/${_GENOMEFASTA} \
+               --processes ${THREADS} \
+               /BAM/${NAME}.srt.rmdup.bam
 
-
-### THIS iS CURRENTLY ALL WRONG
-### MAKE THREE FILES:
-#1) DELs soft-filtered for DHBFC<0.25
-#2) DUPs soft-filtered for DHBFC>1.75
-#3) everything else (not DEL or DUP)
-#then we can concat everything together with the snvs vcf
-
-###these parts are getting moved to their own script, since 
-###smoove exits after trying to re-index after duphold (this 
-###is a bug in smoove, I think). 
-
-#bcftools filter -i 'SVTYPE="DEL" & DHBFC<0.25 & SVLEN>-50000 & SVLEN<50000' -Oz -o ${WORKINGDIR}/${NAME}.del.vcf.gz ${SMOOVEVCF}
-#bcftools index ${WORKINGDIR}/${NAME}.del.vcf.gz
-
-#bcftools filter -i 'SVTYPE="DUP" & DHBFC>1.75 & SVLEN>-50000 & SVLEN<50000' -Oz -o ${WORKINGDIR}/${NAME}.dup.vcf.gz ${SMOOVEVCF}
-#bcftools index ${WORKINGDIR}/${NAME}.dup.vcf.gz
-
-#bcftools filter -i 'SVLEN>=50000 | SVLEN<=-50000' -Oz -o ${WORKINGDIR}/${NAME}.longSV.vcf.gz ${SMOOVEVCF}
+#run with docker now
+docker run \
+               --platform linux/amd64 \
+               --mount type=bind,src=${_FASTAFOLDER},dst=/FASTA \
+               --mount type=bind,src=${WORKINGDIR},dst=/BAM \
+               brentp/smoove smoove duphold \
+               --vcf /BAM/smoove/${NAME}-smoove.genotyped.vcf.gz \
+               --outvcf /BAM/smoove/${NAME}-smoove.genotyped.duphold.vcf.gz \
+               --fasta /FASTA/${_GENOMEFASTA} \
+               --processes ${THREADS} \
+               /BAM/${NAME}.srt.rmdup.bam

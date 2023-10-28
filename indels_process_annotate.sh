@@ -10,17 +10,14 @@ GENOME=
 PREFIX=
 THREADS=1
 DATABASE="Caenorhabditis_elegans"
-ALIGNER="bwa"
-BASECALLER="gatk"
-BGVCF="none"
-SMOOVE=1
 SNPEFF_INPUT=""
 TMPDIR=
 
 #display help
 HELP(){
 	echo "indel_process_annotate.sh"
-	echo "for redoing smoove analysis of aligned reads (Matt Rich 2021)"
+	echo "for performing smoove analysis and annotation of aligned reads" 
+	echo "(Matt Rich 2023)"
 	echo
 	echo "syntax: -d WORKING_DIRECTORY -1 READ1 -2 READ2 -g GENOME_FASTA -x PREFIX"
 	echo "required options:"
@@ -127,7 +124,7 @@ echo "######################################"
 sh call_indels_smoove.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
 	
 #process smoove vcf into del and dup files
-sh process_indels.sh -d ${WORKING_DIR} --vcf ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.vcf.gz
+sh process_indels.sh -d ${WORKING_DIR} --vcf ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.duphold.vcf.gz
 
 echo
 echo "######################################"
