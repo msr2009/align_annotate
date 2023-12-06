@@ -122,20 +122,26 @@ echo "######################################"
 
 #call indels with smoove
 sh call_indels_smoove.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
-	
-#process smoove vcf into del and dup files
-sh process_indels.sh -d ${WORKING_DIR} --vcf ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.duphold.vcf.gz
+#call indels with manta
+sh call_indels_manta.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
+
+#concatenate smoove and manta indels
+bcftools concat -a -o ${_name}.allSV.vcf.gz -Oz ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.duphold.vcf.gz ${WORKINGDIR}/manta/results/variants/diploidSV.vcf.gz
+
+#filter using soft-filter.py
+python soft-filter.py -v ${_name}.allSV.vcf.gz
+
+#extract files for dels, dups, and insertions
+bcftools filter -i 'INFO/SVTYPE="DEL" & INFO/SVLEN>-10000' -o ${_name}.del.soft-filter.vcf.gz -Oz ${_name}.allSV.soft-filter.vcf.gz
+bcftools filter -i 'INFO/SVTYPE="DUP" & INFO/SVLEN<10000' -o ${_name}.dup.soft-filter.vcf.gz -Oz ${_name}.allSV.soft-filter.vcf.gz
+bcftools filter -i 'INFO/SVTYPE="INS" & INFO/SVLEN<10000' -o ${_name}.ins.soft-filter.vcf.gz -Oz ${_name}.allSV.soft-filter.vcf.gz
 
 echo
 echo "######################################"
 echo "ANNOTATING VCF WITH SNPEFF"
 echo "######################################"
 
-#if dup and del files exist, also call those
-if [ -f ${_name}.dup.vcf.gz ]; then
-	sh snpeff_annotation.sh --vcf ${_name}.dup.vcf.gz --db ${DATABASE}
-fi
-
-if [ -f ${_name}.del.vcf.gz ]; then
-	sh snpeff_annotation.sh --vcf ${_name}.del.vcf.gz --db ${DATABASE}
-fi
+#annotate dup, del, and ins files
+sh snpeff_annotation.sh --vcf ${_name}.dup.soft-filter.vcf.gz --db ${DATABASE}
+sh snpeff_annotation.sh --vcf ${_name}.del.soft-filter.vcf.gz --db ${DATABASE}
+sh snpeff_annotation.sh --vcf ${_name}.ins.soft-filter.vcf.gz --db ${DATABASE}
