@@ -56,6 +56,11 @@ done
 
 MANTADIR=${WORKINGDIR}/manta/
 
+if [ -d ${MANTADIR} ]; then
+	echo "found existing manta directory. overwriting."
+	rm -f ${MANTADIR}/*
+fi
+
 python ${MANTAPATH} \
 	--bam ${WORKINGDIR}/${NAME}.srt.rmdup.bam \
 	--referenceFasta ${GENOME} \
