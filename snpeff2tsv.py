@@ -70,8 +70,11 @@ def main(vcf, append_info):
 					_sample = l[9].split(":")
 					_formatdict = dict(zip(_format, _sample))
 					for h in specific_headers:
-							new_variant_line.append(_formatdict[h])
-	
+							try:	
+								new_variant_line.append(_formatdict[h])
+							except ValueError:
+								new_variant_line.append("NA")
+
 					#how many annotations (~# of isoforms)
 					for x in info["ANN"].split(","):
 							ANNdat = x.split("|")
