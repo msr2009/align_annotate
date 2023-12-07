@@ -126,7 +126,7 @@ sh call_indels_smoove.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREAD
 sh call_indels_manta.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
 
 #concatenate smoove and manta indels
-bcftools concat -a -o ${_name}.allSV.vcf.gz -Oz ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.duphold.vcf.gz ${WORKINGDIR}/manta/results/variants/diploidSV.vcf.gz
+bcftools concat -a -o ${_name}.allSV.vcf.gz -Oz ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.duphold.vcf.gz ${WORKING_DIR}/manta/results/variants/diploidSV.vcf.gz
 
 #filter using soft-filter.py
 python soft-filter.py -v ${_name}.allSV.vcf.gz
