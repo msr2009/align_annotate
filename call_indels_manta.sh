@@ -58,7 +58,7 @@ MANTADIR=${WORKINGDIR}/manta/
 
 if [ -d ${MANTADIR} ]; then
 	echo "found existing manta directory. overwriting."
-	rm -f ${MANTADIR}/*
+	rm -rf ${MANTADIR}/*
 fi
 
 python ${MANTAPATH} \

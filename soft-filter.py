@@ -104,7 +104,8 @@ def main(vcf, bgvcf, bgaf, lowqual):
 		try:
 			out_header.filters.add(nf[0], nf[1], nf[2], nf[3])
 		except ValueError:
-			print("{} id header already exists.".format(nf[0]), file=sys.stderr)
+			pass	
+            #print("{} id header already exists.".format(nf[0]), file=sys.stderr)
 			
 #	out_header.filters.add("lowQual", None, None, "variant has low genotype quality (GQ)")
 #	out_header.filters.add("background", None, None, "allele frequency above threshold in background samples")

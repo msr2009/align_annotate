@@ -120,6 +120,11 @@ echo "######################################"
 echo "CALLING INDELS"
 echo "######################################"
 
+###there's some weirdness here:
+###smoove and manta run via python2 (this is one reason by smoove is usually in a docker image)
+###pysam needs python3
+###so, we need to swap conda environments in the middle of this script. 
+
 #call indels with smoove
 sh call_indels_smoove.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
 #call indels with manta
@@ -127,6 +132,12 @@ sh call_indels_manta.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS
 
 #concatenate smoove and manta indels
 bcftools concat -a -o ${_name}.allSV.vcf.gz -Oz ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.duphold.vcf.gz ${WORKING_DIR}/manta/results/variants/diploidSV.vcf.gz
+bcftools index ${_name}.allSV.vcf.gz
+
+###here's where we swap back to align_annotate
+echo "moving back to align_annotate environment"
+eval "$(conda shell.bash hook)"
+conda activate align_annotate
 
 #filter using soft-filter.py
 python soft-filter.py -v ${_name}.allSV.vcf.gz
