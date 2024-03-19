@@ -192,7 +192,7 @@ for strain in `awk '{FS="\t";OFS=","}NR>1{print $20, $21}' "${INFOFILE}"`; do
 		fi
 
 		N_FASTQ=$(find ${FASTQ_DIR}/${FASTQ_PREFIX}_*R1_001.fastq.gz | wc -l)
-		if (( ${N_FASTQ} == 1 ))
+		if [ ${N_FASTQ} -eq 1 ]
 		then
 			READ1=$(find ${FASTQ_DIR}/${FASTQ_PREFIX}_*R1_001.fastq.gz)
 			READ2=$(find ${FASTQ_DIR}/${FASTQ_PREFIX}_*R2_001.fastq.gz)
