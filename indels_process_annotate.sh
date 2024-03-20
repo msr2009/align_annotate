@@ -16,7 +16,8 @@ TMPDIR=
 #display help
 HELP(){
 	echo "indel_process_annotate.sh"
-	echo "for performing smoove analysis and annotation of aligned reads" 
+	echo "for performing indel analysis and annotation of aligned reads" 
+	echo "calls indels with manta and smoove"
 	echo "(Matt Rich 2023)"
 	echo
 	echo "syntax: -d WORKING_DIRECTORY -1 READ1 -2 READ2 -g GENOME_FASTA -x PREFIX"
