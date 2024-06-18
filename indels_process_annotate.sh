@@ -16,7 +16,8 @@ TMPDIR=
 #display help
 HELP(){
 	echo "indel_process_annotate.sh"
-	echo "for performing smoove analysis and annotation of aligned reads" 
+	echo "for performing indel analysis and annotation of aligned reads" 
+	echo "calls indels with manta and smoove"
 	echo "(Matt Rich 2023)"
 	echo
 	echo "syntax: -d WORKING_DIRECTORY -1 READ1 -2 READ2 -g GENOME_FASTA -x PREFIX"
@@ -125,19 +126,24 @@ echo "######################################"
 ###pysam needs python3
 ###so, we need to swap conda environments in the middle of this script. 
 
+#we're going to assume we're starting in align_annotate, and swap first into call_indels
+echo "swapping into python2 environment (call_indels) for indel calling"
+eval "$(conda shell.bash hook)"
+conda activate call_indels
+
 #call indels with smoove
 sh call_indels_smoove.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
 #call indels with manta
 sh call_indels_manta.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
 
+###here's where we swap back to align_annotate
+echo "moving back to align_annotate environment"
+#eval "$(conda shell.bash hook)"
+conda activate align_annotate
+
 #concatenate smoove and manta indels
 bcftools concat -a -o ${_name}.allSV.vcf.gz -Oz ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.duphold.vcf.gz ${WORKING_DIR}/manta/results/variants/diploidSV.vcf.gz
 bcftools index ${_name}.allSV.vcf.gz
-
-###here's where we swap back to align_annotate
-echo "moving back to align_annotate environment"
-eval "$(conda shell.bash hook)"
-conda activate align_annotate
 
 #filter using soft-filter.py
 python soft-filter.py -v ${_name}.allSV.vcf.gz
