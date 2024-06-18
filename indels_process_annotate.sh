@@ -149,7 +149,7 @@ bcftools filter -i 'INFO/SVTYPE="INS" & INFO/SVLEN<10000' -o ${_name}.ins.soft-f
 
 echo
 echo "######################################"
-echo "ANNOTATING VCF WITH SNPEFF"
+echo "ANNOTATING SV VCFS WITH SNPEFF"
 echo "######################################"
 
 #annotate dup, del, and ins files

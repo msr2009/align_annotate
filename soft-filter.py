@@ -14,11 +14,12 @@ Matt Rich, 6/23
 
 import pysam, subprocess, sys
 
-
-def build_filter_sets(rec, genotype, lowqual, background):
+###ADD NEW FILTERS TO ARGS
+def build_filter_sets(rec, genotype, lowqual, background, lowdepth):
 	f_dict = {"Het": False,
 					"lowQual": False,
-					"background": 0 }
+					"background": 0,
+					"lowDepth": False }
 	f_string = []
 	#have to do background analysis as try-except, bc
 	#unique variants in new vcf dont' get merged with 
@@ -38,10 +39,16 @@ def build_filter_sets(rec, genotype, lowqual, background):
 		f_string.append("Het")
     
 	#low quality sites
-	if [s['GQ'] for s in rec.samples.values()][-1] < 15:
+	if [s['GQ'] for s in rec.samples.values()][-1] < lowqual:
 		f_dict["lowQual"] = 1
 		f_string.append("lowQual")
 	
+	#low depth sites
+	if [s['DP'] for s in rec.samples.values()][-1] < lowdepth:
+		f_dict["lowDepth"] = 1
+		f_string.append("lowDepth")
+
+
 	###ADD NEW FILTERS
 
 	#after looping through filters, if no flags then variant PASSes
@@ -51,7 +58,9 @@ def build_filter_sets(rec, genotype, lowqual, background):
 	#add record's filter string to list
 	return f_string, f_dict
 
-def main(vcf, bgvcf, bgaf, lowqual):
+
+###ADD NEW FILTERS TO ARGS
+def main(vcf, bgvcf, bgaf, lowqual, lowdepth):
 	
 	#get working directory first
 	pwd = subprocess.run("dirname {}".format(vcf), shell=True, capture_output=True).stdout.decode().strip()
@@ -77,7 +86,8 @@ def main(vcf, bgvcf, bgaf, lowqual):
     	#if our sample (at -1) has a genotype, it isn't reference
 		gt = [s['GT'] for s in record.samples.values()][-1] 
 		if gt != (None, None):
-			rec_filters = build_filter_sets(record, gt, lowqual, bgaf)
+			###ADD NEW FILTERS TO THESE ARGS
+			rec_filters = build_filter_sets(record, gt, lowqual, bgaf, lowdepth)
 			filter_sets.append(rec_filters[0])
 			filter_dicts.append(rec_filters[1])
 
@@ -96,7 +106,8 @@ def main(vcf, bgvcf, bgaf, lowqual):
 		["Het", None, None, "Heterozygous variant"],
 		["background", None, None, "allele frequency above threshold in background samples"],
 		["lowQual", None, None, "variant has low genotype quality (GQ)"],
-		["BGAF", None, None, "background allele frequency"]
+		["BGAF", None, None, "background allele frequency"],
+		["lowDepth", None, None, "variant has low read depth (DP)"]
 	]
 
 	#if header for filter already exists, report it but don't worry about it
@@ -109,11 +120,15 @@ def main(vcf, bgvcf, bgaf, lowqual):
 			
 #	out_header.filters.add("lowQual", None, None, "variant has low genotype quality (GQ)")
 #	out_header.filters.add("background", None, None, "allele frequency above threshold in background samples")
-	out_header.info.add("BGAF", "1", "Float", "Allele frequency in background strains")
+	try:
+		out_header.info.add("BGAF", "1", "Float", "Allele frequency in background strains")
+	except ValueError:
+		pass
 
 	#output name will be programmatically named by stripping ".vcf.gz" and
 	#replacing with ".soft-filter.vcf.gz"
-	out_name = vcf.rstrip(".vcf.gz")+".soft-filter.vcf.gz"
+#	out_name = vcf.rstrip(".vcf.gz")+".soft-filter.vcf.gz"
+	out_name = vcf.replace(".vcf.gz", ".soft-filter.vcf.gz")
 	out_vcf = pysam.VariantFile(out_name, "w", header=out_header)
 	for record in in_vcf.fetch():	
 		for f in filter_sets.pop(0):
@@ -143,11 +158,13 @@ if __name__ == "__main__":
 			default = 0.1, help = "background allele frequency threshold. must provide --bg-vcf")
 	parser.add_argument('--lowqual', action = 'store', type = int, dest = "lowqual", 
 			default = 15, help = "genotype quality threshold (GQ)")
+	parser.add_argument('--lowdepth', action = 'store', type = int, dest = "lowdepth", 
+			default = 5, help = "read depth threshold")
 
 
 	###ADD NEW FILTERS
 
 	args = parser.parse_args()
 
-	main(args.input_vcf, args.bgvcf, args.bgaf, args.lowqual)	
+	main(args.input_vcf, args.bgvcf, args.bgaf, args.lowqual, args.lowdepth)	
 
