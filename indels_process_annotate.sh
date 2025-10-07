@@ -126,6 +126,14 @@ echo "######################################"
 ###pysam needs python3
 ###so, we need to swap conda environments in the middle of this script. 
 
+###I CAN USE `conda run` for this! much nicer!
+###I also have to change "call_indels_smoove.sh" to not use docker anymore
+###(make "call_indels_smoove_docker" and "call_indels_smoove")
+
+#conda run -n call_indels  call_indels_smoove.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
+#conda run -n call_indels  call_indels_manta.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
+
+
 #we're going to assume we're starting in align_annotate, and swap first into call_indels
 echo "swapping into python2 environment (call_indels) for indel calling"
 eval "$(conda shell.bash hook)"
