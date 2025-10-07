@@ -102,8 +102,8 @@ while [ $# -gt 0 ]; do
 			BGVCF="$2"
 			shift 2
 			;;
-		--no-smoove)
-			SMOOVE=0
+		--call-indels)
+			INDELS=1
 			shift 1
 			;;
 		--tmpdir)
@@ -204,7 +204,7 @@ for strain in `awk '{FS="\t";OFS=","}NR>1{print $20, $21}' "${INFOFILE}"`; do
 			find ${FASTQ_DIR}/${FASTQ_PREFIX}_*R2_001.fastq.gz -exec cat {} + > ${FASTQ_DIR}/${FASTQ_PREFIX}_ALL_R2.fastq.gz
 		fi
 
-		if [ ${SMOOVE} -eq 0 ]
+		if [ ${INDELS} -eq 0 ]
 		then
 			sh align_annotate.sh -d ${WORKING_DIR} -x ${SAMPLE_NAME} \
 									-g ${GENOME} -1 ${READ1} -2 ${READ2} \

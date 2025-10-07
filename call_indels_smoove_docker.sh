@@ -64,34 +64,27 @@ if [ -d ${SMOOVEDIR} ]; then
 	rm -f ${SMOOVEDIR}/*
 fi
 
-
-#run smoove (without duphold)
-smoove call --genotype\
-			--name ${NAME} \
-			--outdir ${WORKINGDIR}/smoove/ \
-			--fasta ${_FASTAFOLDER}/${_GENOMEFASTA} \
-			--processes ${THREADS} \
-			${WORKINGDIR}/${NAME}.srt.rmdup.bam
-
-
-
 #run smoove within docker  
 #(without duphold)
-#docker run \
-#               --platform linux/amd64 \
-#               --mount type=bind,src=${_FASTAFOLDER},dst=/FASTA \
-#               --mount type=bind,src=${WORKINGDIR},dst=/BAM \
-#               brentp/smoove smoove call --genotype\
-#               --name ${NAME} \
-#               --outdir /BAM/smoove/ \
-#               --fasta /FASTA/${_GENOMEFASTA} \
-#               --processes ${THREADS} \
-#               /BAM/${NAME}.srt.rmdup.bam
+docker run \
+               --platform linux/amd64 \
+               --mount type=bind,src=${_FASTAFOLDER},dst=/FASTA \
+               --mount type=bind,src=${WORKINGDIR},dst=/BAM \
+               brentp/smoove smoove call --genotype\
+               --name ${NAME} \
+               --outdir /BAM/smoove/ \
+               --fasta /FASTA/${_GENOMEFASTA} \
+               --processes ${THREADS} \
+               /BAM/${NAME}.srt.rmdup.bam
 
 #run with duphold now
-smoove duphold \
-			--vcf ${WORKINGDIR}/smoove/${NAME}-smoove.genotyped.vcf.gz \
-			--outvcf ${WORKINGDIR}/smoove/${NAME}-smoove.genotyped.duphold.vcf.gz \
-			--fasta ${_FASTAFOLDER}${_GENOMEFASTA} \
-			--processes ${THREADS} \
-			${WORKINGDIR}/${NAME}.srt.rmdup.bam
+docker run \
+               --platform linux/amd64 \
+               --mount type=bind,src=${_FASTAFOLDER},dst=/FASTA \
+               --mount type=bind,src=${WORKINGDIR},dst=/BAM \
+               brentp/smoove smoove duphold \
+               --vcf /BAM/smoove/${NAME}-smoove.genotyped.vcf.gz \
+               --outvcf /BAM/smoove/${NAME}-smoove.genotyped.duphold.vcf.gz \
+               --fasta /FASTA/${_GENOMEFASTA} \
+               --processes ${THREADS} \
+               /BAM/${NAME}.srt.rmdup.bam
