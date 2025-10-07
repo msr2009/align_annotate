@@ -42,7 +42,7 @@ HELP(){
 	echo "				(bwa, bowtie2; default=bwa)"
 	echo "--basecaller		basecalling software to use" 
 	echo "				(samtools, gatk; default=gatk)"
-	echo "--no-smoove	do not genotype indels with smoove"
+	echo "--call-indels	genotype indels using smoove and manta"
 	echo "--bgvcf		background multisample vcf with BGAF field"
 	echo "					must be made with make_background_vcf.py"
 	echo "-db			name of snpEff database for annotation" 
