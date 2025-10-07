@@ -67,9 +67,9 @@ while [ $# -gt 0 ]; do
 			shift 2
 			;;
 		-o|--output_dir)
-	    	OUTPUT_DIR="$2"
-	    	shift 2
-	    	;;
+	    		OUTPUT_DIR="$2"
+	    		shift 2
+	    		;;
 		-m|--map)
 			INFOFILE="$2"
 			shift 2
@@ -114,8 +114,9 @@ while [ $# -gt 0 ]; do
 			HELP
 			exit;;
 		*)
+			echo "unknown argument!"
 			HELP
-            exit;;
+			exit;;
     esac
 done
 
