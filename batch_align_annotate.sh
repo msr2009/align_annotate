@@ -209,13 +209,13 @@ for strain in `awk '{FS="\t";OFS=","}NR>1{print $20, $21}' "${INFOFILE}"`; do
 			sh align_annotate.sh -d ${WORKING_DIR} -x ${SAMPLE_NAME} \
 									-g ${GENOME} -1 ${READ1} -2 ${READ2} \
 									-t ${THREADS} --aligner ${ALIGNER} \
-									--basecaller ${BASECALLER} --no-smoove \
+									--basecaller ${BASECALLER} \
 									--tmpdir ${TMPDIR} --bgvcf ${BGVCF}
 		else
 			sh align_annotate.sh -d ${WORKING_DIR} -x ${SAMPLE_NAME} \
 									-g ${GENOME} -1 ${READ1} -2 ${READ2} \
 									-t ${THREADS} --aligner ${ALIGNER} \
-									--basecaller ${BASECALLER} \
+									--basecaller ${BASECALLER} --call-indels \
 									--tmpdir ${TMPDIR} --bgvcf ${BGVCF}
 		fi
 
