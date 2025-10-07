@@ -13,34 +13,47 @@ DATABASE="Caenorhabditis_elegans"
 ALIGNER="bwa"
 BASECALLER="gatk"
 BGVCF="none"
-SMOOVE=1
-SNPEFF_INPUT=""
-TMPDIR=
+INDELS=0
+TMPDIR="tmpdir"
 
 #display help
 HELP(){
 	echo "align_annotate.sh"
-	echo "an alignment pipeline (Matt Rich 2021)"
+	echo "an alignment pipeline (Matt Rich 2024)"
 	echo
 	echo "syntax: -d WORKING_DIRECTORY -1 READ1 -2 READ2 -g GENOME_FASTA -x PREFIX"
-	echo "required options:"
+	echo
+	echo "required arguments:"
 	echo "-d, --dir	working directory"
 	echo "-x, --prefix	prefix name for output"
 	echo "-g, --genome	location of genome FASTA file"
 	echo "-1		location of forward read FASTQ"
 	echo "-2		location of reverse read FASTQ"
 	echo
-	echo "optional parameters:"
-	echo "--aligner		alignment software to use" 
-	echo "					(bwa, bowtie2; default=bwa)"
-	echo "--basecaller	basecalling software to use" 
-	echo "					(samtools, gatk; default=gatk)"
-	echo "--bgvcf		multisample vcf with BGAF field for background filtering"
-	echo "					must be made with 'make_background_vcf.py'"
+	echo "optional: alignment and basecalling:"
+	echo "--aligner	alignment software to use 
+		(bwa, bowtie2; default=bwa)"
+	echo "--basecaller	basecalling software to use 
+		(samtools, gatk; default=gatk)"
+	echo "--call-indels	call indels with smoove and manta. 
+		req's call_indels conda enviroment and python 2.7"
+	echo
+	echo "optional: filtration"	
+	echo "--gq		genotype quality (GQ) threshold (default=15)"
+	echo "--dp		read depth (DP) threshold (default =5)"
+	echo "--bgvcf		multisample vcf with BGAF field for background filtering 
+		must be made with 'make_background_vcf.py'"
+	echo "--bgaf	background allele frequency threshold (default = 0.1)"
+	echo "--strains_list	file containing all strains in population, one per line
+		strains = folder names in directory."
+	echo
+	echo "optional: annotation"
 	echo "-db	name of snpEff database for annotation (default=Caenorhabditis_elegans)"
+	echo
+	echo "optional: misc"
 	echo "-t, --threads	number of threads to use for processes"
 	echo "--tmpdir		directory for temporary files"
-	echo "--no-smoove	do not use smoove to call indels"
+	echo "--params	parameters file. variables in file overwrite any defined here."
 	echo "-h, --help	show this help"
 }
 
@@ -93,12 +106,28 @@ while [ $# -gt 0 ]; do
 			BGVCF="$2"
 			shift 2
 			;;
-		--no-smoove)
-			SMOOVE=0
+		--call-indels)
+			INDELS=1
 			shift 1
 			;;
 		--tmpdir)
 			TMPDIR="$2"
+			shift 2
+			;;
+		--gq)
+			LOWQUAL="$2"
+			shift 2
+			;;
+		--dp)
+			LOWDEPTH="$2"
+			shift 2
+			;;
+		--bgaf)
+			BGAF="$2"
+			shift 2
+			;;
+		--params_file)
+			PARAMS="$2"
 			shift 2
 			;;
 		-h|--help) #HELP ME PLEASE!
@@ -161,6 +190,11 @@ then
 		TMPDIR=${WORKING_DIR}/tempdir/
 fi
 
+#check architecture.
+#intel procs can take advantage of hardware accel
+#in gatk basecalling. 
+ARCH=`uname -p`
+
 echo
 echo "######################################"
 echo NAME: ${PREFIX}
@@ -172,6 +206,7 @@ echo ALIGNER: ${ALIGNER}
 echo BASECALLER: ${BASECALLER}
 echo SNPEFF DATABASE: ${DATABASE}
 echo TMPDIR: ${TMPDIR}
+echo CPU: ${ARCH}
 echo "######################################"
 
 #make working directory if it doesn't exist
@@ -182,7 +217,6 @@ then
 fi
 
 #make tempdir if it doesn't exist
-
 if [ ! -d ${TMPDIR} ]
 then
 		echo "Temporary directory (${TMPDIR}) does not exist. Creating."
@@ -221,12 +255,29 @@ then
 elif [ ${BASECALLER} = "gatk" ]
 then
 	echo "basecalling with gatk"
-	###need to change this to check if intel proc, then use
-	###call_variants_gatk_parallel.sh
-	sh call_variants_gatk.sh -a ${_name}.srt.rmdup.bam -g ${GENOME} -t ${THREADS} 
+	if [ ${ARCH} = "x86_64" ]; then
+		sh call_variants_gatk.sh -a ${_name}.srt.rmdup.bam -g ${GENOME} -t ${THREADS} 
+	else
+		sh call_variants_gatk_parallel.sh -a ${_name}.srt.rmdup.bam -g ${GENOME} -t ${THREADS} --parallel 500000
+	fi
 fi
 
+if [ ${INDELS} = 1 ]
+then
+	echo
+	echo "######################################"
+	echo "CALLING INDELS"
+	echo "######################################"
+
+	sh indels_process_annotate.sh -d ${WORKING_DIR} -g ${GENOME} -x ${PREFIX} -t ${THREADS} --db ${DATABASE} --tmpdir ${TMPDIR}
+fi
+	
 ###filter vcfs
+echo
+echo "######################################"
+echo "SOFT-FILTERING VCF"
+echo "######################################"
+
 if [ ${BGVCF} = "none" ]
 then
 	python soft-filter.py -v ${_name}.snp.vcf.gz
@@ -234,53 +285,11 @@ else
 	python soft-filter.py -v ${_name}.snp.vcf.gz -b ${BGVCF}
 fi
 
-###HARD CODING THIS IN FOR NOW BECAUSE MY NO-SMOOVE OPTION ISN'T WORKING....
-#SMOOVE=0
-
-if [ ${SMOOVE} = 1 ]
-then
-	echo
-	echo "######################################"
-	echo "CALLING INDELS"
-	echo "######################################"
-
-#	if [ ! -d ${WORKING_DIR}/smoove/ ]
-#	then
-#			echo "smoove working directory does not exist. Creating."
-#			mkdir ${WORKING_DIR}/smoove/
-#	fi
-
-	#call indels with smoove
-	sh call_indels_smoove.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
-	
-	#process smoove vcf into del and dup files
-	sh process_indels.sh -d ${WORKING_DIR} --vcf ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.duphold.vcf.gz
-
-#	#concatenate snp and indel calls into same vcf file
-#	bcftools concat -a -Oz -o ${_name}.all.soft-filter.vcf.gz ${_name}.snp.soft-filter.vcf.gz ${_name}.dup.vcf.gz ${_name}.del.vcf.gz
-#	SNPEFF_INPUT=${_name}.all.soft-filter.vcf.gz
-	
-else
-	echo
-	echo "######################################"
-	echo "SKIPPING INDEL CALLING STEP"
-	echo "######################################"
-#	SNPEFF_INPUT=${_name}.snp.soft-filter.vcf.gz
-fi
-
 echo
 echo "######################################"
-echo "ANNOTATING VCF WITH SNPEFF"
+echo "ANNOTATING SNPS VCF WITH SNPEFF"
 echo "######################################"
 
 #always call snp file
 sh snpeff_annotation.sh --vcf ${_name}.snp.soft-filter.vcf.gz --db ${DATABASE}
 
-#if dup and del files exist, also call those
-if [ -f ${_name}.dup.vcf.gz ]; then
-	sh snpeff_annotation.sh --vcf ${_name}.dup.vcf.gz --db ${DATABASE}
-fi
-
-if [ -f ${_name}.del.vcf.gz ]; then
-	sh snpeff_annotation.sh --vcf ${_name}.del.vcf.gz --db ${DATABASE}
-fi

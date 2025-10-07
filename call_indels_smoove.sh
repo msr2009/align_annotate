@@ -77,7 +77,7 @@ docker run \
                --processes ${THREADS} \
                /BAM/${NAME}.srt.rmdup.bam
 
-#run with docker now
+#run with duphold now
 docker run \
                --platform linux/amd64 \
                --mount type=bind,src=${_FASTAFOLDER},dst=/FASTA \
