@@ -126,28 +126,37 @@ echo "######################################"
 ###pysam needs python3
 ###so, we need to swap conda environments in the middle of this script. 
 
-###I CAN USE `conda run` for this! much nicer!
-###I also have to change "call_indels_smoove.sh" to not use docker anymore
-###(make "call_indels_smoove_docker" and "call_indels_smoove")
 
-#conda run -n call_indels  call_indels_smoove.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
-#conda run -n call_indels  call_indels_manta.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
+#call indels w/ manta and smoove in py2 environment
+#conda run -n call_indels call_indels_smoove.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
+#conda run -n call_indels call_indels_manta.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
+
+#then run duphold on both outputs
+#smoove
+duphold -v ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.vcf \\ 
+		-b ${WORKING_DIR}/${PREFIX}.srt.rmdup.bam -f ${GENOME} -t ${THREADS} \\
+		-o ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.duphold.vcf
+
+#manta
+duphold -v ${WORKING_DIR}/manta/${PREFIX}-manta.genotyped.vcf \\ 
+		-b ${WORKING_DIR}/${PREFIX}.srt.rmdup.bam -f ${GENOME} -t ${THREADS} \\
+		-o ${WORKING_DIR}/manta/${PREFIX}-manta.genotyped.duphold.vcf
 
 
 #we're going to assume we're starting in align_annotate, and swap first into call_indels
-echo "swapping into python2 environment (call_indels) for indel calling"
-eval "$(conda shell.bash hook)"
-conda activate call_indels
+#echo "swapping into python2 environment (call_indels) for indel calling"
+#eval "$(conda shell.bash hook)"
+#conda activate call_indels
 
 #call indels with smoove
-sh call_indels_smoove.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
+#sh call_indels_smoove.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
 #call indels with manta
-sh call_indels_manta.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
+#sh call_indels_manta.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
 
 ###here's where we swap back to align_annotate
-echo "moving back to align_annotate environment"
+#echo "moving back to align_annotate environment"
 #eval "$(conda shell.bash hook)"
-conda activate align_annotate
+#conda activate align_annotate
 
 #concatenate smoove and manta indels
 bcftools concat -a -o ${_name}.allSV.vcf.gz -Oz ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.duphold.vcf.gz ${WORKING_DIR}/manta/results/variants/diploidSV.vcf.gz
