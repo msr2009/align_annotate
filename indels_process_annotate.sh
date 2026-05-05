@@ -126,21 +126,25 @@ echo "######################################"
 ###pysam needs python3
 ###so, we need to swap conda environments in the middle of this script. 
 
-
 #call indels w/ manta and smoove in py2 environment
-#conda run -n call_indels call_indels_smoove.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
-#conda run -n call_indels call_indels_manta.sh -d ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
+echo RUNNING SMOOVE
+conda run --live-stream -n call_indels sh call_indels_smoove.sh --dir ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
+echo RUNNING MANTA
+conda run --live-stream -n call_indels sh call_indels_manta.sh --dir ${WORKING_DIR} -n ${PREFIX} -g ${GENOME} -t ${THREADS}
 
 #then run duphold on both outputs
+echo DUPHOLD-ing
 #smoove
-duphold -v ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.vcf \\ 
-		-b ${WORKING_DIR}/${PREFIX}.srt.rmdup.bam -f ${GENOME} -t ${THREADS} \\
-		-o ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.duphold.vcf
+duphold -v ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.vcf \
+	-b ${WORKING_DIR}/${PREFIX}.srt.rmdup.bam -f ${GENOME} -t ${THREADS} \
+	-o ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.duphold.vcf
+bcftools sort -Oz -o ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.duphold.vcf.gz ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.duphold.vcf
+bcftools index ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.duphold.vcf.gz
 
 #manta
-duphold -v ${WORKING_DIR}/manta/${PREFIX}-manta.genotyped.vcf \\ 
-		-b ${WORKING_DIR}/${PREFIX}.srt.rmdup.bam -f ${GENOME} -t ${THREADS} \\
-		-o ${WORKING_DIR}/manta/${PREFIX}-manta.genotyped.duphold.vcf
+#duphold -v ${WORKING_DIR}/manta/${PREFIX}-manta.vcf.gz \
+#	-b ${WORKING_DIR}/${PREFIX}.srt.rmdup.bam -f ${GENOME} -t ${THREADS} \
+#	-o ${WORKING_DIR}/manta/${PREFIX}-manta.duphold.vcf
 
 
 #we're going to assume we're starting in align_annotate, and swap first into call_indels
@@ -159,16 +163,20 @@ duphold -v ${WORKING_DIR}/manta/${PREFIX}-manta.genotyped.vcf \\
 #conda activate align_annotate
 
 #concatenate smoove and manta indels
+echo
+echo "######################################"
+echo "POST-PROCESSING"
+echo "######################################"
 bcftools concat -a -o ${_name}.allSV.vcf.gz -Oz ${WORKING_DIR}/smoove/${PREFIX}-smoove.genotyped.duphold.vcf.gz ${WORKING_DIR}/manta/results/variants/diploidSV.vcf.gz
 bcftools index ${_name}.allSV.vcf.gz
 
 #filter using soft-filter.py
-python soft-filter.py -v ${_name}.allSV.vcf.gz
+#python soft-filter.py -v ${_name}.allSV.vcf.gz
 
 #extract files for dels, dups, and insertions
-bcftools filter -i 'INFO/SVTYPE="DEL" & INFO/SVLEN>-10000' -o ${_name}.del.soft-filter.vcf.gz -Oz ${_name}.allSV.soft-filter.vcf.gz
-bcftools filter -i 'INFO/SVTYPE="DUP" & INFO/SVLEN<10000' -o ${_name}.dup.soft-filter.vcf.gz -Oz ${_name}.allSV.soft-filter.vcf.gz
-bcftools filter -i 'INFO/SVTYPE="INS" & INFO/SVLEN<10000' -o ${_name}.ins.soft-filter.vcf.gz -Oz ${_name}.allSV.soft-filter.vcf.gz
+bcftools filter -i 'INFO/SVTYPE="DEL" & INFO/SVLEN>-10000' -o ${_name}.del.vcf.gz -Oz ${_name}.allSV.vcf.gz
+bcftools filter -i 'INFO/SVTYPE="DUP" & INFO/SVLEN<10000' -o ${_name}.dup.vcf.gz -Oz ${_name}.allSV.vcf.gz
+bcftools filter -i 'INFO/SVTYPE="INS" & INFO/SVLEN<10000' -o ${_name}.ins.vcf.gz -Oz ${_name}.allSV.vcf.gz
 
 echo
 echo "######################################"
@@ -176,6 +184,6 @@ echo "ANNOTATING SV VCFS WITH SNPEFF"
 echo "######################################"
 
 #annotate dup, del, and ins files
-sh snpeff_annotation.sh --vcf ${_name}.dup.soft-filter.vcf.gz --db ${DATABASE}
-sh snpeff_annotation.sh --vcf ${_name}.del.soft-filter.vcf.gz --db ${DATABASE}
-sh snpeff_annotation.sh --vcf ${_name}.ins.soft-filter.vcf.gz --db ${DATABASE}
+sh snpeff_annotation.sh --vcf ${_name}.dup.vcf.gz --db ${DATABASE}
+sh snpeff_annotation.sh --vcf ${_name}.del.vcf.gz --db ${DATABASE}
+sh snpeff_annotation.sh --vcf ${_name}.ins.vcf.gz --db ${DATABASE}

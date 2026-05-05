@@ -66,14 +66,14 @@ esac
 #samtools collate -@ ${FEWER_THREADS} -Ou ${_NAME}.bam | samtools fixmate -@ ${FEWER_THREADS} -m - - | samtools sort -@ ${THREADS} - | samtools markdup -@ ${FEWER_THREADS} -s - ${_NAME}.srt.rmdup.bam
 #
 #but it doesn't, so we need to make some temporary files
-#
+#this is because my samtools is old. I have made a new "align_annotate_updated" environment to test
 
-echo `date +”%m/%d/%Y %H:%M”` collating reads
+echo `date +"%Y-%m-%d %T"` collating reads
 samtools collate -@ ${FEWER_THREADS} ${_NAME}.bam ${_NAME}.coll
-echo `date +”%m/%d/%Y %H:%M”` fixing mates
+echo `date +"%Y-%m-%d %T"` fixing mates
 samtools fixmate -@ ${FEWER_THREADS} -m ${_NAME}.coll.bam ${_NAME}.mate.bam
-echo `date +”%m/%d/%Y %H:%M”` sorting, removing duplicates
+echo `date +"%Y-%m-%d %T"` sorting, removing duplicates
 samtools sort -@ ${THREADS} ${_NAME}.mate.bam | samtools markdup -@ ${FEWER_THREADS} -s - ${_NAME}.srt.rmdup.bam
-echo `date +”%m/%d/%Y %H:%M”` indexing BAM
-samtools index -@ ${FEWER_THREADS} ${_NAME}.srt.rmdup.bam ${_NAME}.srt.rmdup.bam.bai
+echo `date +"%Y-%m-%d %T"` indexing BAM
+samtools index ${_NAME}.srt.rmdup.bam ${_NAME}.srt.rmdup.bam.bai
 chmod a+r ${_NAME}.srt.rmdup.bam*

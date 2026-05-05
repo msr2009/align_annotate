@@ -68,4 +68,7 @@ python ${MANTAPATH} \
 
 python ${MANTADIR}/runWorkflow.py -j ${THREADS}
 
+#change name and move manta output so it's the same as smoove output
+#cp ${MANTADIR}/results/variants/candidateSVs.vcf.gz ${MANTADIR}/${NAME}-manta.vcf.gz
+
 ###should probably add some post-processing to manta vcf...change to <DUP/DEL> etc...

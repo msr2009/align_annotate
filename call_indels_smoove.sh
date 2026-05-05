@@ -33,7 +33,7 @@ while [ $# -gt 0 ]; do
 			shift 2
 			;;
 		-d|--dir) 
-			WORKINGDIR="$2"
+			WORKING_DIR="$2"
 			shift 2
 			;;
 		-t|--threads)
@@ -51,8 +51,8 @@ done
 
 _FASTAFOLDER=`dirname ${GENOME}`
 _GENOMEFASTA=`basename ${GENOME}`
-SMOOVEDIR=${WORKINGDIR}/smoove/
-SMOOVEVCF=${SMOOVEDIR}/${NAME}-smoove.genotyped.vcf
+SMOOVEDIR=${WORKING_DIR}/smoove/
+SMOOVEVCF=${SMOOVEDIR}/${NAME}-smoove.vcf
 
 #if smoove has been run before, there will be a .csi index 
 #the presence of this causes smoove to stop running before 
@@ -64,7 +64,6 @@ if [ -d ${SMOOVEDIR} ]; then
 	rm -f ${SMOOVEDIR}/*
 fi
 
-
 ##run smoove (without duphold)
 #smoove call --genotype \
 #			--name ${NAME} \
@@ -73,9 +72,12 @@ fi
 #			--processes ${THREADS} \
 #			${WORKINGDIR}/${NAME}.srt.rmdup.bam
 
-#I've had trouble runnign the whole thing from smoove, but can do it in steps
+#I've had trouble running the whole thing from smoove, but can do it in steps
 #1) smoove call
 smoove call -n ${NAME} -f ${GENOME} -p ${THREADS} -o ${SMOOVEDIR} ${WORKING_DIR}/${NAME}.srt.rmdup.bam
+echo SMOOVE DONE, GUNZIPPING
 #2) svtyper-sso
 gunzip ${SMOOVEVCF}.gz
+echo GUNZIPPED, SVTYPING
 svtyper-sso -i ${SMOOVEVCF} -o ${SMOOVEVCF%%.vcf}.genotyped.vcf --cores ${THREADS} -B ${WORKING_DIR}/${NAME}.srt.rmdup.bam
+echo DONE SVTYPING

@@ -72,7 +72,7 @@ def main(vcf, append_info):
 					for h in specific_headers:
 							try:	
 								new_variant_line.append(_formatdict[h])
-							except ValueError:
+							except KeyError:
 								new_variant_line.append("NA")
 
 					#how many annotations (~# of isoforms)
