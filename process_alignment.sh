@@ -57,7 +57,23 @@ esac
 #	samtools view -bS ${_NAME}.bam
 #fi
 
-#then do all the processing	
-samtools collate -@ ${FEWER_THREADS} -O ${_NAME}.bam | samtools fixmate -@ ${FEWER_THREADS} -m - - | samtools sort -@ ${THREADS} - | samtools markdup -@ ${FEWER_THREADS} -s - ${_NAME}.srt.rmdup.bam
+#then do all the processing
+
+#old processing 
+#samtools sort -@ ${THREADS} ${_NAME}.bam | samtools markdup -@ ${FEWER_THREADS} -s - ${_NAME}.srt.rmdup.bam
+#
+#new processing w/ collate and fixmate should work:
+#samtools collate -@ ${FEWER_THREADS} -Ou ${_NAME}.bam | samtools fixmate -@ ${FEWER_THREADS} -m - - | samtools sort -@ ${THREADS} - | samtools markdup -@ ${FEWER_THREADS} -s - ${_NAME}.srt.rmdup.bam
+#
+#but it doesn't, so we need to make some temporary files
+#
+
+echo `date +”%m/%d/%Y %H:%M”` collating reads
+samtools collate -@ ${FEWER_THREADS} ${_NAME}.bam ${_NAME}.coll
+echo `date +”%m/%d/%Y %H:%M”` fixing mates
+samtools fixmate -@ ${FEWER_THREADS} -m ${_NAME}.coll.bam ${_NAME}.mate.bam
+echo `date +”%m/%d/%Y %H:%M”` sorting, removing duplicates
+samtools sort -@ ${THREADS} ${_NAME}.mate.bam | samtools markdup -@ ${FEWER_THREADS} -s - ${_NAME}.srt.rmdup.bam
+echo `date +”%m/%d/%Y %H:%M”` indexing BAM
 samtools index -@ ${FEWER_THREADS} ${_NAME}.srt.rmdup.bam ${_NAME}.srt.rmdup.bam.bai
 chmod a+r ${_NAME}.srt.rmdup.bam*
