@@ -35,7 +35,7 @@ HELP(){
 	echo "-f, --fastq_dir 	directory containing fastq files from sequencing run"
 	echo "-o, --output_dir	directory where each strain output file be added"
 	echo "-g, --genome		location of genome FASTA file"
-	echo "-m, --map		file containing strain and fastq information"	
+	echo "-m, --map		file containing sequencing ID and strain name (tab-delimited)"	
 	echo
 	echo "optional parameters:"
 	echo "--aligner		alignment software to use" 
@@ -162,12 +162,11 @@ then
 		mkdir ${OUTPUT_DIR}
 fi
 
-#NOTE: this step relies on static positions for columns in
-#the mapping file from the HCI sequence core. 
-
 #echo "smoove=${SMOOVE}"
 
-for strain in `awk '{FS="\t";OFS=","}NR>1{print $20, $21}' "${INFOFILE}"`; do
+#this now assumes you have built a new sample sheet with only two columns using parse_sample_sheet.py
+
+for strain in `awk '{FS="\t";OFS=","}NR>1{print $1, $2}' "${INFOFILE}"`; do
 		echo $strain
 		#initial values for each sample
 		STARTTIME=`date +%s`

@@ -223,6 +223,21 @@ then
 		mkdir ${TMPDIR}	
 fi
 
+
+echo
+echo "######################################"
+echo "TRIMMING ADAPTERS FROM READS"
+echo "######################################"
+
+mkdir "${WORKING_DIR}/TRIM/"
+
+#use max 8 threads for trim_galore
+TRIM_THREADS=$(( THREADS > 8 ? 8 : THREADS ))
+trim_galore --paired --output_dir $WORKING_DIR --basename ${PREFIX}_trimmed -j $TRIM_THREADS $READ1 $READ2
+
+TRIM_R1=${WORKING_DIR}/${PREFIX}_trimmed_val_1.fq.gz
+TRIM_R2=${WORKING_DIR}/${PREFIX}_trimmed_val_2.fq.gz
+
 echo
 echo "######################################"
 echo "ALIGNING READS TO GENOME"
@@ -230,10 +245,10 @@ echo "######################################"
 
 if [ ${ALIGNER} = "bwa" ]
 then
-	sh aln_bwa.sh -g ${GENOME} -x ${_name} -t ${THREADS} -1 ${READ1} -2 ${READ2}
+	sh aln_bwa.sh -g ${GENOME} -x ${_name} -t ${THREADS} -1 ${TRIM_R1} -2 ${TRIM_R2}
 elif [ ${ALIGNER} = "bowtie2" ]
 then
-	sh aln_bt2.sh -g ${GENOME} -x ${_name} -t ${THREADS} -1 ${READ1} -2 ${READ2}
+	sh aln_bt2.sh -g ${GENOME} -x ${_name} -t ${THREADS} -1 ${TRIM_R1} -2 ${TRIM_R2}
 fi
 
 echo
