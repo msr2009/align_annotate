@@ -61,11 +61,12 @@ def main(infile, prefix, isec_all, skip_missing):
 
 				out_name_parts = out_l.split(" ")[5].split(".")
 				isec_name = ".".join([out_name_parts[0], 
-							"isec", 
-							".".join(out_name_parts[1:])])
+								"isec", 
+								".".join(out_name_parts[1:])])
+				
 				#remove any upstream folder names from isec_name
 				try:
-						isec_name = isec_name.split("/")[1]
+						isec_name = isec_name.split("/")[-1]
 				except IndexError:
 						pass
 
